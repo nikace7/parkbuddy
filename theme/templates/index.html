@@ -1,0 +1,57 @@
+{% extends "user_layout.html" %}
+
+{% block head %}
+  <!-- Leaflet -->
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
+  <!-- Make sure you put this AFTER Leaflet's CSS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+          integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.0/jquery-ui.min.js"
+          integrity="sha512-MlEyuwT6VkRXExjj8CdBKNgd+e2H+aYZOCUaCrt9KRk6MlZDOs91V1yK22rwm8aCIsb5Ec1euL8f0g58RKT/Pg=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+{% endblock head %}
+
+{% block content %}
+{{ block.super }}
+  <!-- Relative for making the coordinates 0-0 and avsolute for changing the position of the box  -->
+  <main class="relative flex-grow h-full flex flex-col">
+    <div id="map" class="h-full flex-grow"></div>
+    <!-- Search box z for making the box come to front-->
+    <div id="search-box"
+         class="absolute top-16 left-32 bg-white z-[9999] p-5 pt-7 rounded-lg opacity-75 hover:opacity-100 transition-opacity">
+      <p class="font-semibold text-lg">Search for parking place</p>
+      <input placeholder="Example: Nayabazar"
+             class="outline-none border px-2 py-1 rounded mt-2 w-[250px]" />
+      <p class="mt-2">Vehicle type</p>
+      <select class="w-full bg-gray-100 px-2 py-1 rounded mt-1">
+        <option>Any</option>
+        <option>Bike</option>
+        <option>Car</option>
+      </select>
+    </div>
+  </main>
+  <script>
+      var map = L.map('map').setView([27.7172, 85.3240], 13); // Starting coordinate is that of Kathmandu
+
+      // Using OpenStreetMap for layers
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
+  </script>
+  <script>
+      $("#search-box").draggable({
+          containment: "parent"
+      });
+  </script>
+{% endblock content %}
