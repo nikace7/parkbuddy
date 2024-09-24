@@ -41,8 +41,8 @@
     </div>
   </main>
   <script>
-    var map = L.map('map').setView([27.7172, 85.3240], 13); // Starting coordinate is that of Kathmandu
-
+    var map = L.map('map').setView([27.7172, 85.3240], 13); // Starting coordinate is Kathmandu
+  
     // Using OpenStreetMap for layers
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
@@ -50,48 +50,64 @@
     }).addTo(map);
     
     var marker; // Variable to hold the marker
-
+  
+    // Function to get the CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+  
+    var csrftoken = getCookie('csrftoken');
+  
     // Event listener to get coordinates and place a marker when the map is clicked
     map.on('click', function(e) {
         var lat = e.latlng.lat;
         var lng = e.latlng.lng;
-
+  
         // If there's an existing marker, remove it
         if (marker) {
             map.removeLayer(marker);
         }
-
+  
         // Add a new marker at the clicked location
         marker = L.marker([lat, lng]).addTo(map)
             .bindPopup('Latitude: ' + lat + '<br>Longitude: ' + lng)
             .openPopup();
-
+  
         // Send latitude and longitude to the backend
-        fetch("{% url 'save_parking_place' %}", {
+        $.ajax({
+            url: "{% url 'save_parking_place' %}",
             method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({
+            headers: { "X-CSRFToken": csrftoken },  // Include CSRF token here
+            data: JSON.stringify({
                 latitude: lat,
-                longitude: lng
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert('Parking place saved with ID: ' + data.parking_place_id);
-            } else {
-                alert('Failed to save parking place: ' + data.message);
+                longitude: lng,
+            }),
+            contentType: "application/json",
+            success: function(response) {
+                if (response.status === 'success') {
+                    alert('Parking place saved with ID: ' + response.parking_place_id);
+                } else {
+                    alert('Failed to save parking place.');
+                }
+            },
+            error: function() {
+                alert('Error occurred while saving parking place.');
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error occurred while saving parking place.');
         });
     });
-</script>
+  </script>
+  
   
   <script>
       $("#search-box").draggable({

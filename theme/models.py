@@ -48,6 +48,10 @@ class OTP(models.Model):
 class ParkingPlace(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
+    address = models.TextField(blank=True, null=True)  
+    city = models.CharField(max_length=255, blank=True, null=True)  
+    country = models.CharField(max_length=255, blank=True, null=True)  
+
     
     def __str__(self):
         return f'{self.latitude}, {self.longitude}'
