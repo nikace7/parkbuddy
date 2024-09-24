@@ -41,17 +41,62 @@
     </div>
   </main>
   <script>
-      var map = L.map('map').setView([27.7172, 85.3240], 13); // Starting coordinate is that of Kathmandu
+    var map = L.map('map').setView([27.7172, 85.3240], 13); // Starting coordinate is that of Kathmandu
 
-      // Using OpenStreetMap for layers
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 18,
-          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      }).addTo(map);
-  </script>
+    // Using OpenStreetMap for layers
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    
+    var marker; // Variable to hold the marker
+
+    // Event listener to get coordinates and place a marker when the map is clicked
+    map.on('click', function(e) {
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+
+        // If there's an existing marker, remove it
+        if (marker) {
+            map.removeLayer(marker);
+        }
+
+        // Add a new marker at the clicked location
+        marker = L.marker([lat, lng]).addTo(map)
+            .bindPopup('Latitude: ' + lat + '<br>Longitude: ' + lng)
+            .openPopup();
+
+        // Send latitude and longitude to the backend
+        fetch("{% url 'save_parking_place' %}", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                latitude: lat,
+                longitude: lng
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Parking place saved with ID: ' + data.parking_place_id);
+            } else {
+                alert('Failed to save parking place: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error occurred while saving parking place.');
+        });
+    });
+</script>
+  
   <script>
       $("#search-box").draggable({
           containment: "parent"
       });
+
   </script>
 {% endblock content %}
