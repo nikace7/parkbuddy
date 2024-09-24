@@ -18,14 +18,38 @@ def save_parking_place(request):
         data = json.loads(request.body)
         latitude = data.get('latitude')
         longitude = data.get('longitude')
+    
+        try:
+            # Fetching location details from Nominatim
+            url = f'https://nominatim.openstreetmap.org/reverse?format=json&lat={latitude}&lon={longitude}'
+            response = request.get(url)
+            location_data = response.json()
 
-      
-        parking_place = ParkingPlace.objects.create(latitude=latitude, longitude=longitude)
-        
-    
-        return JsonResponse({'status': 'success', 'parking_spot_id': parking_place.id})
-    
-    return JsonResponse({'status': 'failed', 'message': 'Invalid request method'})
+            # Extract details from Nominatim response
+            address = location_data.get('display_name', '')
+            city = location_data.get('address', {}).get('city', '')
+            country = location_data.get('address', {}).get('country', '')
+
+            # Save parking place with location details
+            parking_place = ParkingPlace.objects.create(
+                latitude=latitude,
+                longitude=longitude,
+                address=address,
+                city=city,
+                country=country
+            )
+
+            return JsonResponse({
+                'status': 'success',
+                'parking_place_id': parking_place.id,
+                'address': address,
+                'city': city,
+                'country': country,
+            })
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})
 
 # # Twilio configuration (replace with your Twilio credentials)
 # TWILIO_ACCOUNT_SID = 'your_account_sid'
