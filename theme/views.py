@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.shortcuts import render 
+from django.shortcuts import redirect, render 
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.crypto import get_random_string
 from django.views.decorators.csrf import csrf_exempt
@@ -10,6 +10,21 @@ import json
 
 def index(request):
    return render(request, 'index.html')
+
+
+def login(request):
+    if request.method == 'POST':
+        # TODO: Phone number check and OTP send
+        return render(request, 'login_otp.html', { 'phone_number': request.POST.get('phone') })
+    
+    return render(request, 'login.html')
+
+
+def otp_check(request):
+    if request.method == 'POST':
+        # TODO: Check OTP and login the user
+        return redirect('homepage')
+
 
 def save_parking_place(request):
     if request.method == 'POST':
