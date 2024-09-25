@@ -12,44 +12,27 @@ import json
 def index(request):
    return render(request, 'index.html')
 
-@csrf_exempt
 def save_parking_place(request):
-    if request.method == 'POST':    
-        data = json.loads(request.body)
-        latitude = data.get('latitude')
-        longitude = data.get('longitude')
-    
+    if request.method == 'POST':
         try:
-            # Fetching location details from Nominatim
-            url = f'https://nominatim.openstreetmap.org/reverse?format=json&lat={latitude}&lon={longitude}'
-            response = request.get(url)
-            location_data = response.json()
+            data = json.loads(request.body)
+            latitude = data.get('latitude')
+            longitude = data.get('longitude')
 
-            # Extract details from Nominatim response
-            address = location_data.get('display_name', '')
-            city = location_data.get('address', {}).get('city', '')
-            country = location_data.get('address', {}).get('country', '')
-
-            # Save parking place with location details
-            parking_place = ParkingPlace.objects.create(
-                latitude=latitude,
-                longitude=longitude,
-                address=address,
-                city=city,
-                country=country
-            )
-
+            # Create and save the ParkingPlace
+            parking_place = ParkingPlace.objects.create(latitude=latitude, longitude=longitude)
+            
             return JsonResponse({
                 'status': 'success',
                 'parking_place_id': parking_place.id,
-                'address': address,
-                'city': city,
-                'country': country,
+                'address': parking_place.address,
+                'city': parking_place.city,
+                'country': parking_place.country,
             })
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)})
+            return JsonResponse({'status': 'failed', 'message': f'An error occurred: {e}'})
+    return JsonResponse({'status': 'failed', 'message': 'Invalid request method.'})
 
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})
 
 # Twilio configuration (replace with your Twilio credentials)
 TWILIO_ACCOUNT_SID = 'ACb95bf9fef13d7f28fe6e69ab5c487542'
