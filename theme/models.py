@@ -39,12 +39,13 @@ class OTP(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
 
     def save(self, *args, **kwargs):
-        self.otp_code = f'{random.randint(100000, 999999)}'  # 6-digit random OTP
+        # Generate a 6-digit OTP code
+        self.otp_code = f'{random.randint(100000, 999999)}'
         super().save(*args, **kwargs)
 
     def is_valid(self):
+        # Check if OTP is still valid (within 5 minutes)
         now = timezone.now()
-        # OTP is valid for 5 minutes
         return now <= self.created_at + timezone.timedelta(minutes=5)
 
 class ParkingPlace(models.Model):

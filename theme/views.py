@@ -1,10 +1,9 @@
 from django.http import JsonResponse
-from django.shortcuts import render ,  redirect
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.hashers import check_password
-from .models import ParkingPlace
+from django.shortcuts import render 
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.crypto import get_random_string
 from django.views.decorators.csrf import csrf_exempt
-from .models import CustomUser, OTP
+from .models import CustomUser, OTP , ParkingPlace 
 from twilio.rest import Client
 import json
 
@@ -39,6 +38,7 @@ TWILIO_ACCOUNT_SID = 'REMOVED'
 TWILIO_AUTH_TOKEN = 'REMOVED'
 TWILIO_PHONE_NUMBER = 'REMOVED'
 
+@csrf_exempt
 def send_otp_via_sms(phone_number, otp_code):
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     message = client.messages.create(
@@ -48,45 +48,52 @@ def send_otp_via_sms(phone_number, otp_code):
     )
     return message.sid
 
+# Signup with OTP
+@csrf_exempt
 def signup_view(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        phone_number = data.get('phone_number')
-        password = data.get('password')
-        
-        if CustomUser.objects.filter(phone_number=phone_number).exists():
-            return JsonResponse({'status': 'error', 'message': 'Phone number already registered'}, status=400)
-        
-        user = CustomUser.objects.create_user(phone_number=phone_number, password=password)
-        otp = OTP.objects.create(user=user)
-        
-        # Send OTP via SMS
-        send_otp_via_sms(phone_number, otp.otp_code)
-        
-        return JsonResponse({'status': 'success', 'message': 'OTP sent to your phone'})
-    return render(request, 'signup.html')
+        try:
+            data = json.loads(request.body)
+            phone_number = data.get('phone_number')
 
-def login_with_otp_view(request):
+            # Ensure the user exists, or create a new one
+            user, created = CustomUser.objects.get_or_create(phone_number=phone_number)
+
+            # Generate OTP (this is handled in the model save method)
+            otp = OTP.objects.create(user=user)
+
+            # Send OTP via SMS
+            send_otp_via_sms(phone_number, otp.otp_code)
+
+            return JsonResponse({'status': 'success', 'message': 'OTP sent successfully.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})
+
+
+# Login with OTP Verification
+@csrf_exempt
+def login_view(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         phone_number = data.get('phone_number')
-        otp_code = data.get('otp')
+        otp = data.get('otp')
 
         try:
-            user = CustomUser.objects.get(phone_number=phone_number)
-            otp = OTP.objects.filter(user=user).last()
-            
-            if otp and otp.is_valid() and otp.otp_code == otp_code:
-                login(request, user)
-                return JsonResponse({'status': 'success', 'message': 'Logged in successfully'})
-            else:
-                return JsonResponse({'status': 'error', 'message': 'Invalid or expired OTP'}, status=400)
-        
-        except CustomUser.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
-    
-    return render(request, 'login_with_otp.html')
+            otp_verification = OTP.objects.get(phone_number=phone_number, otp=otp)
+            if otp_verification.is_verified:
+                return JsonResponse({'status': 'error', 'message': 'OTP already used.'})
 
+            otp_verification.is_verified = True
+            otp_verification.save()
+
+            # Generate token or session (implement your token mechanism here)
+            return JsonResponse({'status': 'success', 'message': 'Login successful.'})
+        except ObjectDoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invalid OTP.'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})
+
+@csrf_exempt
 def resend_otp_view(request):
     if request.method == 'POST':
         data = json.loads(request.body)
