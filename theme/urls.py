@@ -1,13 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
-
-from . import views
+from .views import *
 
 urlpatterns = [
-    path('', views.index, name='homepage'),
-    path('login/', views.login, name='login'),
-    path('save-parking-place/', views.save_parking_place , name='save_parking_place'),
-    path('signup/', views.signup_view, name='signup'),
-    path('login-otp/', views.login_view, name='loginview'),
-    path('resend-otp/', views.resend_otp_view, name='resend_otp'),
+    path('', index, name='homepage'),
+    path('save-parking-place/', save_parking_place , name='save_parking_place'),
+    path('login/', login_view, name='login'),
+    path('login-otp/', login_otp_view, name='login_otp'),
 ]
