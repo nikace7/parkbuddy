@@ -23,10 +23,9 @@
 
 {% block content %}
 {{ block.super }}
-  <!-- Relative for making the coordinates 0-0 and avsolute for changing the position of the box  -->
   <main class="relative flex-grow h-full flex flex-col">
     <div id="map" class="h-full flex-grow"></div>
-    <!-- Search box z for making the box come to front-->
+    <!-- Search box z-index for making the box come to front -->
     <div id="search-box"
          class="absolute top-16 left-32 bg-white z-[9999] p-5 pt-7 rounded-lg opacity-75 hover:opacity-100 transition-opacity">
       <p class="font-semibold text-lg">Search for parking place</p>
@@ -40,6 +39,7 @@
       </select>
     </div>
   </main>
+
   <script>
     var map = L.map('map').setView([27.7172, 85.3240], 13); // Starting coordinate is Kathmandu
   
@@ -49,7 +49,8 @@
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
     
-    var marker; // Variable to hold the marker
+    var marker = null; // Variable to hold the marker
+    var parkingPlaceId = null; // Variable to store the parking place ID returned by the backend
   
     // Function to get the CSRF token
     function getCookie(name) {
@@ -69,22 +70,27 @@
   
     var csrftoken = getCookie('csrftoken');
   
-    // Event listener to get coordinates and place a marker when the map is clicked
-    map.on('click', function(e) {
-        var lat = e.latlng.lat;
-        var lng = e.latlng.lng;
-  
-        // If there's an existing marker, remove it
+    // Function to add marker and delete it when clicked
+    function addMarker(lat, lng) {
+        // Remove existing marker if it already exists
         if (marker) {
             map.removeLayer(marker);
+            marker = null;
         }
-  
-        // Add a new marker at the clicked location
+
+        // Add a new marker
         marker = L.marker([lat, lng]).addTo(map)
             .bindPopup('Latitude: ' + lat + '<br>Longitude: ' + lng)
             .openPopup();
-  
-        // Send latitude and longitude to the backend
+
+        // Add click event on the marker to remove it and delete from the database
+        marker.on('click', function() {
+            map.removeLayer(marker);
+            deleteMarkerFromDB(parkingPlaceId); // Call function to delete marker from the DB
+            marker = null;
+        });
+
+        // Send latitude and longitude to the backend to save the parking place
         $.ajax({
             url: "{% url 'save_parking_place' %}",
             method: "POST",
@@ -96,6 +102,7 @@
             contentType: "application/json",
             success: function(response) {
                 if (response.status === 'success') {
+                    parkingPlaceId = response.parking_place_id; // Store the parking place ID
                     alert('Parking place saved with ID: ' + response.parking_place_id);
                 } else {
                     alert('Failed to save parking place.');
@@ -105,14 +112,42 @@
                 alert('Error occurred while saving parking place.');
             }
         });
-    });
-  </script>
+    }
   
-  
-  <script>
-      $("#search-box").draggable({
-          containment: "parent"
-      });
+    // Function to delete the parking place from the database
+    function deleteMarkerFromDB(parkingPlaceId) {
+        if (!parkingPlaceId) return;  // Ensure we have a valid ID before making the request
 
+        $.ajax({
+            url: "/delete-parking-place/" + parkingPlaceId + "/",  // URL to delete the parking place
+            method: "DELETE",
+            headers: { "X-CSRFToken": csrftoken },  // Include CSRF token
+            success: function(response) {
+                if (response.status === 'success') {
+                    alert('Parking place deleted successfully.');
+                    parkingPlaceId = null;  // Reset the parking place ID
+                } else {
+                    alert('Failed to delete parking place.');
+                }
+            },
+            error: function() {
+                alert('Error occurred while deleting parking place.');
+            }
+        });
+    }
+  
+    // Event listener to get coordinates and place a marker when the map is clicked
+    map.on('click', function(e) {
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+        addMarker(lat, lng);
+    });
+</script>
+
+  <script>
+    // Make search box draggable
+    $("#search-box").draggable({
+        containment: "parent"
+    });
   </script>
 {% endblock content %}
