@@ -1,17 +1,10 @@
-from django.http import JsonResponse , HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render , redirect
-from django.core.exceptions import ObjectDoesNotExist
-from django.utils.crypto import get_random_string
-from django.views.decorators.csrf import csrf_exempt
-from .models import CustomUser, OTP , ParkingPlace 
+from .models import  ParkingPlace 
 from django.contrib.auth import get_user_model
 from django.contrib import messages
-from .forms import PhoneLoginForm, OTPVerificationForm
 import random
-from twilio.rest import Client
 import json
-
-
 
 
 def index(request):
@@ -39,51 +32,39 @@ def save_parking_place(request):
     return JsonResponse({'status': 'failed', 'message': 'Invalid request method.'})
 
 
+def send_otp(phone_number, otp):
+    # You can integrate an actual SMS service here to send the OTP
+    print(f"OTP {otp} sent to {phone_number}")
 
-User = get_user_model()
-
-# Function to simulate sending OTP (Replace with actual OTP service)
-def send_otp(phone_number):
-    otp = random.randint(100000, 999999)
-    # Store OTP in session for demo (use cache/DB in production)
-    return otp
-
-# View for login with phone number
 def login_view(request):
     if request.method == 'POST':
-        form = PhoneLoginForm(request.POST)
-        if form.is_valid():
-            phone = form.cleaned_data['phone']
-            otp = send_otp(phone)  # Simulate sending OTP
+        phone_number = request.POST.get('phone')
+
+        if phone_number and len(phone_number) == 10:
+            otp = random.randint(100000, 999999)  # Generate a 6-digit OTP
+            request.session['phone_number'] = phone_number
             request.session['otp'] = otp
-            request.session['phone'] = phone
-            return redirect('login_otp')  # Redirect to OTP page
-    else:
-        form = PhoneLoginForm()
-    
-    return render(request, 'login.html', {'form': form})
+            send_otp(phone_number, otp)  # Mock sending OTP
 
-# View for OTP verification
+            return redirect('login_otp')  # Redirect to OTP input page
+        else:
+            messages.error(request, "Please enter a valid 10-digit phone number.")
+
+    return render(request, 'login.html')
 def login_otp_view(request):
-    phone = request.session.get('phone')
+    phone_number = request.session.get('phone_number')
     
-    if not phone:
-        return redirect('login')  # Redirect to login if no phone session
-
     if request.method == 'POST':
-        form = OTPVerificationForm(request.POST)
-        if form.is_valid():
-            input_otp = form.cleaned_data['otp']
-            session_otp = request.session.get('otp')
-            
-            if input_otp == str(session_otp):
-                # Successful login, create or retrieve user
-                user, created = User.objects.get_or_create(phone=phone)
-                # Log the user in (implement your own login logic)
-                return redirect('homepage')  # Redirect to homepage after login
-            else:
-                messages.error(request, 'Invalid OTP, please try again.')
-    else:
-        form = OTPVerificationForm()
+        otp_input = request.POST.get('otp')
+        session_otp = request.session.get('otp')
 
-    return render(request, 'login_otp.html', {'form': form, 'phone_number': phone})
+        if otp_input and otp_input == str(session_otp):
+            # OTP is correct, login the user
+            # Here, you would log in or create the user based on phone number
+            # For example: User.objects.get_or_create(phone_number=phone_number)
+            messages.success(request, "Login successful!")
+            return redirect('homepage')  # Redirect to homepage
+        else:
+            messages.error(request, "Invalid OTP. Please try again.")
+
+    return render(request, 'login_otp.html', {'phone_number': phone_number})
