@@ -1,0 +1,132 @@
+{
+  "intents": [
+    {
+      "tag": "greeting",
+      "patterns": [
+        "Hi",
+        "Hello",
+        "Hey",
+        "Hi there",
+        "Good morning",
+        "Good afternoon",
+        "Greetings",
+        "What's up?",
+        "How are you?"
+      ],
+      "responses": [
+        "Hello! How can I assist you with parking today?",
+        "Hi there! Need help finding a parking spot?",
+        "Hey! How can I help you with your parking needs?",
+        "Hello! What parking assistance do you require?"
+      ],
+      "context": [""]
+    },
+    {
+      "tag": "goodbye",
+      "patterns": [
+        "bye",
+        "goodbye",
+        "see you later",
+        "take care",
+        "Catch you later",
+        "Farewell",
+        "See you soon"
+      ],
+      "responses": [
+        "Goodbye! Safe travels and happy parking.",
+        "See you later! Don't forget to park safely.",
+        "Take care! Remember to check for available parking.",
+        "Farewell! Hope to assist you again soon."
+      ],
+      "context": [""]
+    },
+    {
+      "tag": "thanks",
+      "patterns": [
+        "Thanks",
+        "Thank you",
+        "That's helpful",
+        "Appreciate it",
+        "Thanks a lot",
+        "Thank you very much",
+        "I appreciate your help"
+      ],
+      "responses": [
+        "You're welcome! Happy to assist with parking.",
+        "Glad I could help!",
+        "No problem! Enjoy your parking experience.",
+        "Anytime! Let me know if you need more help."
+      ],
+      "context": [""]
+    },
+    {
+      "tag": "parking_spots",
+      "patterns": [
+        "Where can I find parking?",
+        "Show me available parking spots",
+        "Where are the nearest parking areas?",
+        "Find me a parking spot",
+        "Are there parking spaces available?"
+      ],
+      "responses": [
+        "You can find available parking spots at the following locations: Central Park, Downtown Lot, and Main Street Garage.",
+        "Currently, there are parking spaces available near the library and the shopping mall.",
+        "Nearby parking areas include the City Park and the Riverfront Parking."
+        
+      ],
+      "context": [""]
+    },
+    {
+      "tag": "parking_hours",
+      "patterns": [
+        "What are the parking hours?",
+        "Is parking allowed overnight?",
+        "When can I park?",
+        "Parking hours for this area?",
+        "Tell me about the parking timings"
+      ],
+      "responses": [
+        "Parking is available 24/7 in most areas, but be sure to check local signs for specific hours.",
+        "Most parking spots allow overnight parking, but some may have restrictions. Always check the signs.",
+        "Typical parking hours are from 8 AM to 8 PM, but some lots may differ.",
+        "Make sure to verify the timings at your specific parking location."
+      ],
+      "context": [""]
+    },
+    {
+      "tag": "parking_fees",
+      "patterns": [
+        "What are the parking fees?",
+        "How much does parking cost?",
+        "Tell me about the parking charges",
+        "Are there any fees for parking?",
+        "What is the price for parking?"
+      ],
+      "responses": [
+        "Parking fees vary by location: Central Park charges $5 for the first hour and $2 for each additional hour.",
+        "Most parking lots charge $10 for a full day, while street parking might be cheaper.",
+        "You can find detailed parking fee information on our website or at the specific parking area.",
+        "The cost of parking typically ranges from $2 to $10, depending on the location."
+      ],
+      "context": [""]
+    },
+    {
+      "tag": "contact",
+      "patterns": [
+        "How can I contact Parking Buddy?",
+        "Contact details for Parking Buddy",
+        "How to get in touch with support?",
+        "Parking Buddy contact information",
+        "Phone number of Parking Buddy",
+        "Email address of Parking Buddy"
+      ],
+      "responses": [
+        "You can contact Parking Buddy via phone at +977-1-5540555 or email at support@parkingbuddy.com.",
+        "For inquiries, please call us at +977-1-5540555 or email support@parkingbuddy.com.",
+        "Feel free to reach out at +977-1-5540555 or support@parkingbuddy.com for assistance.",
+        "Visit our official website at www.parkingbuddy.com for more contact details."
+      ],
+      "context": [""]
+    }
+  ]
+}

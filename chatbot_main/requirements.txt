@@ -1,0 +1,3 @@
+spacy==3.7.5
+torch
+spacy download en_core_web_sm
