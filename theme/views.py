@@ -35,7 +35,7 @@ def save_parking_place(request):
 
 @csrf_exempt
 def delete_parking_place(request, parking_place_id):
-    if request.method == 'DELETE': 
+    if request.method == 'DELETE':  
         try:
             parking_place = ParkingPlace.objects.get(id=parking_place_id)
             parking_place.delete()
@@ -45,6 +45,10 @@ def delete_parking_place(request, parking_place_id):
     else:
         return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
     
+def send_otp(phone_number, otp):
+  
+    print(f"OTP {otp} sent to {phone_number}")
+
 def login_view(request):
     if request.method == 'POST':
         phone_number = request.POST.get('phone')
