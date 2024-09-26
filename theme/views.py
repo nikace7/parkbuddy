@@ -1,10 +1,12 @@
 from django.http import JsonResponse
 from django.shortcuts import render , redirect
-from .models import  ParkingPlace 
 from django.contrib.auth import get_user_model
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+from .models import  ParkingPlace 
 import random
 import json
+
 
 
 def index(request):
@@ -31,11 +33,18 @@ def save_parking_place(request):
             return JsonResponse({'status': 'failed', 'message': f'An error occurred: {e}'})
     return JsonResponse({'status': 'failed', 'message': 'Invalid request method.'})
 
-
-def send_otp(phone_number, otp):
-  
-    print(f"OTP {otp} sent to {phone_number}")
-
+@csrf_exempt
+def delete_parking_place(request, parking_place_id):
+    if request.method == 'DELETE': 
+        try:
+            parking_place = ParkingPlace.objects.get(id=parking_place_id)
+            parking_place.delete()
+            return JsonResponse({'status': 'success'}, status=200)
+        except ParkingPlace.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Parking place not found'}, status=404)
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+    
 def login_view(request):
     if request.method == 'POST':
         phone_number = request.POST.get('phone')
