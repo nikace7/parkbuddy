@@ -14,6 +14,8 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.phone_number
+    
+#Parking Space model to store parking locations
 
 class ParkingSpace(models.Model):
     location = PointField(geography=True, srid=4326)
