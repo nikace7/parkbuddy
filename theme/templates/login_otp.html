@@ -1,55 +1,48 @@
 {% extends "base.html" %}
 {% load static %}
-
 {% block content %}
-<main class="flex-grow flex justify-center items-center">
-    <div class="flex flex-col justify-center items-center gap-4 w-[400px] shadow-md py-8 px-4">
-        <svg height="60" viewBox="0 0 345 471" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g clip-path="url(#clip0_1_28)">
-                <rect width="128" height="471" fill="#1A1A1A" />
-                <rect width="209" height="330" fill="#1A1A1A" />
-                <ellipse cx="198" cy="165" rx="147" ry="165" fill="#1A1A1A" />
-                <mask id="mask0_1_28" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="345" height="471">
+    <main class="flex-grow flex justify-center items-center">
+        <div class="flex flex-col justify-center items-center gap-4 w-[400px] shadow-md py-8 px-4">
+            <svg height="60" viewBox="0 0 345 471" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_1_28)">
                     <rect width="128" height="471" fill="#1A1A1A" />
                     <rect width="209" height="330" fill="#1A1A1A" />
                     <ellipse cx="198" cy="165" rx="147" ry="165" fill="#1A1A1A" />
-                </mask>
-                <g mask="url(#mask0_1_28)">
-                    <path d="M0 0H282C282 0 319 115.5 161 147.5C3.00003 179.5 0 261 0 261V0Z" fill="#ED1C24" />
-                    <path d="M0 0H237.5C237.5 0 248.5 54 145.5 76.5C42.5 99 0 165 0 165V0Z" fill="#F15A24" />
-                    <path d="M0 0H128C128 0 137.5 19 77 40.5C16.5 62 0 100 0 100V0Z" fill="#F7931E" />
+                    <mask id="mask0_1_28" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="345"
+                        height="471">
+                        <rect width="128" height="471" fill="#1A1A1A" />
+                        <rect width="209" height="330" fill="#1A1A1A" />
+                        <ellipse cx="198" cy="165" rx="147" ry="165" fill="#1A1A1A" />
+                    </mask>
+                    <g mask="url(#mask0_1_28)">
+                        <path d="M0 0H282C282 0 319 115.5 161 147.5C3.00003 179.5 0 261 0 261V0Z" fill="#ED1C24" />
+                        <path d="M0 0H237.5C237.5 0 248.5 54 145.5 76.5C42.5 99 0 165 0 165V0Z" fill="#F15A24" />
+                        <path d="M0 0H128C128 0 137.5 19 77 40.5C16.5 62 0 100 0 100V0Z" fill="#F7931E" />
+                    </g>
                 </g>
-            </g>
-            <defs>
-                <clipPath id="clip0_1_28">
-                    <rect width="345" height="471" fill="white" />
-                </clipPath>
-            </defs>
-        </svg>
-        <img src="{% static 'animations/phone-otp.json' %}" width="300" height="300" class="mx-auto" />
-        <div class="flex flex-col gap-2 items-center">
-            <div class="flex items-center gap-1">
-                <input disabled class="border text-xs border-gray-500 rounded-lg py-1 text-center disabled:bg-gray-100" value="{{ phone_number }}" />
+                <defs>
+                    <clipPath id="clip0_1_28">
+                        <rect width="345" height="471" fill="white" />
+                    </clipPath>
+                </defs>
+            </svg>
+            <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
+            <dotlottie-player src="{% static 'animations/phone-otp.json' %}" background="transparent" speed="1"
+                style="width: 300px; height: 300px" direction="1" playMode="normal" autoplay class="mx-auto"></dotlottie-player>
+            <div class="flex flex-col gap-2 items-center">
+                <div class="flex items-center gap-1">
+                    <input disabled class="border text-xs border-gray-500 rounded-lg py-1 text-center disabled:bg-gray-100" placeholder="10-digit number" autofocus value="{{ phone_number }}" />
+                </div>
+                <p class="text-center text-xs">Enter the OTP sent to your phone:</p>
+                <form class="flex gap-1 items-center" method="post" action="{% url 'homepage' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="phone" value="{{ phone_number }}" />
+                    <input name="otp" class="border border-gray-500 rounded-lg py-1 text-center disabled:bg-gray-100" placeholder="6 digit OTP" autofocus />
+                    <button type="submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </button>
+                </form>
             </div>
-            <p class="text-center text-xs">Enter the OTP sent to your phone:</p>
-            <form class="flex gap-1 items-center" method="post" action="{% url 'login_otp' %}">
-                {% csrf_token %}
-                <input type="hidden" name="phone" value="{{ phone_number }}" />
-                <input name="otp" class="border border-gray-500 rounded-lg py-1 text-center" placeholder="OTP" required maxlength="6" />
-                <button type="submit">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right">
-                        <path d="M5 12h14" />
-                        <path d="m12 5 7 7-7 7" />
-                    </svg>
-                </button>
-            </form>
-            {% if messages %}
-                {% for message in messages %}
-                    <p class="text-red-500 text-xs">{{ message }}</p>
-                {% endfor %}
-            {% endif %}
-            <p class="text-center text-xs">Didn't receive the OTP? <a href="{% url 'login' %}" class="text-blue-600">Resend OTP</a></p>
         </div>
-    </div>
-</main>
+    </main>
 {% endblock content %}
