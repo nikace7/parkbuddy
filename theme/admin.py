@@ -1,6 +1,10 @@
 from django.contrib import admin
-from .models import ParkingPlace
+from .models import  ParkingSpace
 
-@admin.register(ParkingPlace)
-class ParkingPlaceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'latitude', 'longitude', 'address', 'city', 'country')
+class ParkingSpaceAdmin(admin.ModelAdmin):
+    list_display = ('vehicle_type', 'location', 'available')
+    list_filter = ('vehicle_type', 'available')  # Filter by vehicle type or availability
+    search_fields = ('vehicle_type',)  # Allow searching by vehicle type
+
+# Register the models with the admin site
+admin.site.register(ParkingSpace, ParkingSpaceAdmin)

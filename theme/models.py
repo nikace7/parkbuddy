@@ -1,43 +1,40 @@
 from django.db import models
-from django.dispatch import receiver
-from django.db.models.signals import pre_save
-import requests  
+from django.contrib.gis.geos import Point
+from django.contrib.gis.db.models import PointField
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.auth import get_user_model
 
-class ParkingPlace(models.Model):
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-    address = models.CharField(max_length=255, blank=True)
-    city = models.CharField(max_length=100, blank=True)
-    country = models.CharField(max_length=100, blank=True)
+User = get_user_model()
+
+# User model to register users with phone numbers
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=15, unique=True)  # Nepal country code + phone
+    is_verified = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.latitude}, {self.longitude} - {self.address}'
+        return self.phone_number
 
-def fetch_location_data(latitude, longitude):
-    api_url = f"https://geocode.maps.co/reverse?lat={latitude}&lon={longitude}"
-    try:
-        response = requests.get(api_url)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            print(f"Failed with status code {response.status_code}")
-    except Exception as e:
-        print(f"Error occurred: {e}")
-    return None
+class ParkingSpace(models.Model):
+    location = PointField(geography=True, srid=4326)
+    available = models.BooleanField(default=True)
+    vehicle_type = models.CharField(max_length=10, choices=[('Car', 'Car'), ('Bike', 'Bike')])
 
+    def __str__(self):
+        return f"{self.vehicle_type} Parking at {self.location}"
 
-# Static method to handle pre-save signals
-@receiver(pre_save, sender=ParkingPlace)
-def populate_location_details(sender, instance, **kwargs):
-    if not instance.address or not instance.city or not instance.country:
-        data = fetch_location_data(instance.latitude, instance.longitude)
-        if data and "address" in data:
-            address_data = data['address']
-            instance.address = address_data.get('suburb', '') or \
-                               address_data.get('neighbourhood', '') or \
-                               address_data.get('city_district', '')
-            instance.city = address_data.get('city', '')
-            instance.country = address_data.get('country', '')
+# Function to find nearest parking spaces
+def find_nearest_parking_spaces(user_latitude, user_longitude, max_distance_km=2, vehicle_type=None):
+    user_location = Point(user_longitude, user_latitude, srid=4326)  # Longitude, Latitude order
+    query = ParkingSpace.objects.filter(available=True)
 
-        if not instance.address or not instance.city or not instance.country:
-            print(f"Failed to fetch location data for ({instance.latitude}, {instance.longitude})")
+    # Filter by vehicle type if provided
+    if vehicle_type:
+        query = query.filter(vehicle_type=vehicle_type)
+
+    # Calculate distance and filter within the max distance
+    nearest_parking_spaces = query.annotate(
+        distance=Distance('location', user_location)
+    ).order_by('distance').filter(distance__lt=max_distance_km * 1000)  # Convert km to meters
+
+    return nearest_parking_spaces
