@@ -117,7 +117,7 @@
                             'vehicle_type': vehicleType,
                         },
                         success: function (response) {
-                            console.log("KNN Search Response:", response); // Debugging response
+                            console.log("KNN Search Response:", response); 
 
                             if (response.status === 'success' && response.data.length > 0) {
                                 addMarkers(response.data);  // Add new markers based on KNN search

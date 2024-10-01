@@ -24,7 +24,7 @@ def geocode_location(location_name):
         response = requests.get(
             'https://nominatim.openstreetmap.org/search',
             params={'q': location_name, 'format': 'json', 'limit': 1},
-            headers={'User-Agent': 'ParkBuddyApp/1.0 (your_email@example.com)'}
+            # headers={'User-Agent': 'ParkBuddyApp/1.0 (https://www.parkbuddy.com)'}
         )
 
         if response.status_code == 200:
