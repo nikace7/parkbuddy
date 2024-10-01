@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block head %}
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+          integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+{% endblock head %}
+
+{% block content %}
+  <div class="container mx-auto py-10">
+    <h1 class="text-2xl font-bold text-center mb-5">Add Parking Space</h1>
+
+    <!-- Map container -->
+    <div id="map" class="h-96 w-full mb-5 border rounded-lg shadow-lg"></div>
+
+    <!-- Form for parking details -->
+    <div class="bg-white p-5 shadow-md rounded-lg">
+      <form id="addParkingForm">
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
+        <div class="mb-4">
+          <label for="address" class="block text-gray-700">Address:</label>
+          <input type="text" id="address" name="address" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+        </div>
+        <div class="mb-4">
+          <label for="vehicle_type" class="block text-gray-700">Vehicle Type:</label>
+          <select id="vehicle_type" name="vehicle_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+            <option value="">Select a vehicle type</option>
+            <option value="Car">Car</option>
+            <option value="Bike">Bike</option>
+          </select>
+        </div>
+        <div class="flex justify-center">
+          <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save Parking Space</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Initialize map and set view
+    var map = L.map('map').setView([27.7172, 85.3240], 13); // Default to Kathmandu
+
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    var marker = null; // To store the marker
+
+    // Function to add a marker and update hidden form fields
+    function addMarker(lat, lng) {
+      if (marker) {
+        map.removeLayer(marker); // Remove existing marker
+      }
+
+      marker = L.marker([lat, lng]).addTo(map);
+      $('#latitude').val(lat);
+      $('#longitude').val(lng);
+
+      // Nominatim for reverse geocoding to populate address field
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
+          }
+          return response.json();
+        })
+        .then(data => {
+          $('#address').val(data?.address?.suburb || data?.address?.city || data?.address?.country || '');
+        })
+        .catch(error => {
+          console.error('Error fetching address:', error);
+          alert('Could not fetch address for the selected location.');
+        });
+    }
+
+    // Add marker on map click
+    map.on('click', function (e) {
+      addMarker(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Submit form with AJAX
+    $('#addParkingForm').on('submit', function (e) {
+      e.preventDefault();
+
+      var lat = parseFloat($('#latitude').val());  
+      var lng = parseFloat($('#longitude').val()); 
+      var address = $('#address').val();
+      var vehicleType = $('#vehicle_type').val();
+      var csrftoken = '{{ csrf_token }}';
+
+      $.ajax({
+        url: '{% url "save_parking_space" %}',
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken },
+        data: JSON.stringify({ latitude: lat, longitude: lng, address: address, vehicle_type: vehicleType }),
+        contentType: 'application/json',
+        success: function (response) {
+          if (response.status === 'success') {
+            alert('Parking space saved successfully!');
+            $('#addParkingForm')[0].reset();
+            $('#address').val(''); 
+            map.setView([27.7172, 85.3240], 13); 
+            if (marker) {
+              map.removeLayer(marker); 
+              marker = null; 
+            }
+          } else {
+            alert('Failed to save parking space: ' + response.message);
+          }
+        },
+        error: function () {
+          alert('Error while saving parking space.');
+        }
+      });
+    });
+  </script>
+{% endblock content %}
