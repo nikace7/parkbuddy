@@ -1,3 +1,4 @@
+<!-- index.html -->
 {% extends "user_layout.html" %}
 
 {% block head %}
@@ -6,146 +7,140 @@
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
         crossorigin="" />
-  <!-- Make sure you put this AFTER Leaflet's CSS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
           crossorigin=""></script>
-  <!-- jQuery -->
+  
+  <!-- jQuery and jQuery UI -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
           integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.0/jquery-ui.min.js"
           integrity="sha512-MlEyuwT6VkRXExjj8CdBKNgd+e2H+aYZOCUaCrt9KRk6MlZDOs91V1yK22rwm8aCIsb5Ec1euL8f0g58RKT/Pg=="
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 {% endblock head %}
 
 {% block content %}
 {{ block.super }}
   <main class="relative flex-grow h-full flex flex-col">
     <div id="map" class="h-full flex-grow"></div>
-    <!-- Search box z-index for making the box come to front -->
+    <!-- Draggable Search Box -->
     <div id="search-box"
          class="absolute top-16 left-32 bg-white z-[9999] p-5 pt-7 rounded-lg opacity-75 hover:opacity-100 transition-opacity">
       <p class="font-semibold text-lg">Search for parking place</p>
-      <input placeholder="Example: Nayabazar"
+      <input id="parking-search" placeholder="Example: Nayabazar"
              class="outline-none border px-2 py-1 rounded mt-2 w-[250px]" />
       <p class="mt-2">Vehicle type</p>
-      <select class="w-full bg-gray-100 px-2 py-1 rounded mt-1">
-        <option>Any</option>
-        <option>Bike</option>
-        <option>Car</option>
+      <select id="vehicle-type" class="w-full bg-gray-100 px-2 py-1 rounded mt-1">
+        <option value="">Any</option>
+        <option value="Bike">Bike</option>
+        <option value="Car">Car</option>
       </select>
+      <button id="search-button" class="bg-blue-500 text-white px-3 py-1 rounded mt-3">Search</button>
     </div>
   </main>
 
   <script>
-    var map = L.map('map').setView([27.7172, 85.3240], 13); // Starting coordinate is Kathmandu
-  
-    // Using OpenStreetMap for layers
+    // Initialize the map with default location (Kathmandu)
+    var map = L.map('map').setView([27.7172, 85.3240], 13);
+
+    // Add OpenStreetMap tile layer
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
-    
-    var marker = null; // Variable to hold the marker
-    var parkingPlaceId = null; // Variable to store the parking place ID returned by the backend
-  
-    // Function to get the CSRF token
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
+
+    var markers = [];  // To store map markers
+
+    // Function to clear existing markers
+    function clearMarkers() {
+        markers.forEach(marker => map.removeLayer(marker));
+        markers = [];
     }
-  
-    var csrftoken = getCookie('csrftoken');
-  
-    // Function to add marker and delete it when clicked
-    function addMarker(lat, lng) {
-        // Remove existing marker if it already exists
-        if (marker) {
-            map.removeLayer(marker);
-            marker = null;
-        }
 
-        // Add a new marker
-        marker = L.marker([lat, lng]).addTo(map)
-            .bindPopup('Latitude: ' + lat + '<br>Longitude: ' + lng)
-            .openPopup();
+    // Function to place markers on the map
+    function addMarkers(parkingSpaces) {
+        clearMarkers();
 
-        // Add click event on the marker to remove it and delete from the database
-        marker.on('click', function() {
-            map.removeLayer(marker);
-            deleteMarkerFromDB(parkingPlaceId); // Call function to delete marker from the DB
-            marker = null;
+        parkingSpaces.forEach(function(parkingSpace) {
+            if (parkingSpace.latitude && parkingSpace.longitude) {
+                var marker = L.marker([parkingSpace.latitude, parkingSpace.longitude]).addTo(map);
+                marker.bindPopup(`
+                    <strong>Parking Space:</strong> ${parkingSpace.name || 'Unnamed'}<br>
+                    <strong>Vehicle Type:</strong> ${parkingSpace.vehicle_type}<br>
+                    <strong>Distance:</strong> ${parkingSpace.distance} meters
+                `);
+                markers.push(marker);
+            }
         });
 
-        // Send latitude and longitude to the backend to save the parking place
+        if (markers.length > 0) {
+            var group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds());
+        }
+    }
+
+    // Event listener for search button click
+    $('#search-button').on('click', function () {
+        var searchTerm = $('#parking-search').val().trim();
+        var vehicleType = $('#vehicle-type').val();
+
+        if (!searchTerm) {
+            alert('Please enter a location to search.');
+            return;
+        }
+
+        // Use Nominatim API to get coordinates from the location name
         $.ajax({
-            url: "{% url 'save_parking_place' %}",
-            method: "POST",
-            headers: { "X-CSRFToken": csrftoken },  // Include CSRF token here
-            data: JSON.stringify({
-                latitude: lat,
-                longitude: lng,
-            }),
-            contentType: "application/json",
-            success: function(response) {
-                if (response.status === 'success') {
-                    parkingPlaceId = response.parking_place_id; // Store the parking place ID
-                    alert('Parking place saved with ID: ' + response.parking_place_id);
+            url: `https://nominatim.openstreetmap.org/search`,
+            method: "GET",
+            data: {
+                q: searchTerm,
+                format: "json",
+                limit: 1
+            },
+            success: function (geoResponse) {
+                console.log("Nominatim API Response:", geoResponse); // Debugging response
+
+                if (geoResponse.length > 0) {
+                    var location = geoResponse[0];
+                    var userLat = location.lat;
+                    var userLng = location.lon;
+
+                    // AJAX request to backend to perform KNN search
+                    $.ajax({
+                        url: "{% url 'search_nearest_parking' %}",
+                        type: "GET",
+                        data: {
+                            'latitude': userLat,
+                            'longitude': userLng,
+                            'vehicle_type': vehicleType,
+                        },
+                        success: function (response) {
+                            console.log("KNN Search Response:", response); // Debugging response
+
+                            if (response.status === 'success' && response.data.length > 0) {
+                                addMarkers(response.data);  // Add new markers based on KNN search
+                            } else {
+                                clearMarkers();  // Clear the map if no results
+                                alert(response.message || 'No parking spaces found.');
+                            }
+                        },
+                        error: function () {
+                            alert("Failed to retrieve parking spaces.");
+                        }
+                    });
                 } else {
-                    alert('Failed to save parking place.');
+                    alert('Location not found. Please try another name.');
                 }
             },
-            error: function() {
-                alert('Error occurred while saving parking place.');
+            error: function () {
+                alert('Failed to retrieve location coordinates.');
             }
         });
-    }
-  
-    // Function to delete the parking place from the database
-    function deleteMarkerFromDB(parkingPlaceId) {
-        if (!parkingPlaceId) return;  // Ensure we have a valid ID before making the request
-
-        $.ajax({
-            url: "/delete-parking-place/" + parkingPlaceId + "/",  // URL to delete the parking place
-            method: "DELETE",
-            headers: { "X-CSRFToken": csrftoken },  // Include CSRF token
-            success: function(response) {
-                if (response.status === 'success') {
-                    alert('Parking place deleted successfully.');
-                    parkingPlaceId = null;  // Reset the parking place ID
-                } else {
-                    alert('Failed to delete parking place.');
-                }
-            },
-            error: function() {
-                alert('Error occurred while deleting parking place.');
-            }
-        });
-    }
-  
-    // Event listener to get coordinates and place a marker when the map is clicked
-    map.on('click', function(e) {
-        var lat = e.latlng.lat;
-        var lng = e.latlng.lng;
-        addMarker(lat, lng);
     });
-</script>
 
-  <script>
-    // Make search box draggable
+    // Make the search box draggable
     $("#search-box").draggable({
         containment: "parent"
     });
