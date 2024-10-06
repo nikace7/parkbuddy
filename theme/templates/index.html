@@ -1,5 +1,5 @@
-<!-- index.html -->
 {% extends "user_layout.html" %}
+{% load static %} <!-- Load static files library -->
 
 {% block head %}
   <!-- Leaflet -->
@@ -10,7 +10,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
           crossorigin=""></script>
-  
+
   <!-- jQuery and jQuery UI -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
           integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
@@ -18,6 +18,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.0/jquery-ui.min.js"
           integrity="sha512-MlEyuwT6VkRXExjj8CdBKNgd+e2H+aYZOCUaCrt9KRk6MlZDOs91V1yK22rwm8aCIsb5Ec1euL8f0g58RKT/Pg=="
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- Custom CSS for map icons (optional if you want to style them) -->
+  <style>
+    .icon-bike {
+      background-image: url('{% static "icons/bike-icon.png" %}');
+    }
+    .icon-car {
+      background-image: url('{% static "icons/car-icon.png" %}');
+    }
+  </style>
 {% endblock head %}
 
 {% block content %}
@@ -52,19 +62,36 @@
 
     var markers = [];  // To store map markers
 
+    // Custom icons for bike and car parking spaces
+    var bikeIcon = L.icon({
+        iconUrl: '{% static "icons/bike.png" %}',  // Path to bike icon
+        iconSize: [32, 32],  // Size of the icon
+        iconAnchor: [16, 32],  // Anchor point of the icon (base of the icon)
+        popupAnchor: [0, -32]  // Position of the popup relative to the icon
+    });
+
+    var carIcon = L.icon({
+        iconUrl: '{% static "icons/car.png" %}',  // Path to car icon
+        iconSize: [32, 32],  // Size of the icon
+        iconAnchor: [16, 32],  // Anchor point of the icon (base of the icon)
+        popupAnchor: [0, -32]  // Position of the popup relative to the icon
+    });
+
     // Function to clear existing markers
     function clearMarkers() {
         markers.forEach(marker => map.removeLayer(marker));
         markers = [];
     }
 
-    // Function to place markers on the map
+    // Function to place markers on the map with appropriate icons
     function addMarkers(parkingSpaces) {
         clearMarkers();
 
         parkingSpaces.forEach(function(parkingSpace) {
             if (parkingSpace.latitude && parkingSpace.longitude) {
-                var marker = L.marker([parkingSpace.latitude, parkingSpace.longitude]).addTo(map);
+                var icon = parkingSpace.vehicle_type === 'Bike' ? bikeIcon : carIcon;
+
+                var marker = L.marker([parkingSpace.latitude, parkingSpace.longitude], { icon: icon }).addTo(map);
                 marker.bindPopup(`
                     <strong>Parking Space:</strong> ${parkingSpace.name || 'Unnamed'}<br>
                     <strong>Vehicle Type:</strong> ${parkingSpace.vehicle_type}<br>

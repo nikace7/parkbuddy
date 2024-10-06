@@ -18,7 +18,9 @@ class UserProfile(models.Model):
 #Parking Space model to store parking locations
 
 class ParkingSpace(models.Model):
+    name = models.CharField(max_length=100, blank=True, null=True)
     location = PointField(geography=True, srid=4326)
+    location_name = models.CharField(max_length=100, blank=True, null=True)
     available = models.BooleanField(default=True)
     vehicle_type = models.CharField(max_length=10, choices=[('Car', 'Car'), ('Bike', 'Bike')])
 

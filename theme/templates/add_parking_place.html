@@ -94,10 +94,12 @@
     // Submit form with AJAX
     $('#addParkingForm').on('submit', function (e) {
       e.preventDefault();
-
+      
       var lat = parseFloat($('#latitude').val());  
       var lng = parseFloat($('#longitude').val()); 
       var address = $('#address').val();
+      var name = address || 'Unnamed';
+      var 
       var vehicleType = $('#vehicle_type').val();
       var csrftoken = '{{ csrf_token }}';
 
@@ -105,7 +107,7 @@
         url: '{% url "save_parking_space" %}',
         method: 'POST',
         headers: { 'X-CSRFToken': csrftoken },
-        data: JSON.stringify({ latitude: lat, longitude: lng, address: address, vehicle_type: vehicleType }),
+        data: JSON.stringify({ latitude: lat, longitude: lng, address:, vehicle_type: vehicleType }),
         contentType: 'application/json',
         success: function (response) {
           if (response.status === 'success') {
