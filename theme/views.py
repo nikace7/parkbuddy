@@ -42,27 +42,43 @@ def geocode_location(location_name):
 
 # View to save parking space
 @csrf_exempt
-def save_parking_space(request):
+def save_parking_space(request): 
     if request.method == 'POST':
-        data = json.loads(request.body)
-        latitude = data.get('latitude')
-        longitude = data.get('longitude')
-        vehicle_type = data.get('vehicle_type')
-
         try:
-            latitude = float(latitude)
-            longitude = float(longitude)
+            data = json.loads(request.body)
 
+            # Extract data from request
+            parking_name = data.get('parking_name', 'Unnamed')  # Default to 'Unnamed' if empty
+            latitude = float(data.get('latitude'))
+            longitude = float(data.get('longitude'))
+            vehicle_type = data.get('vehicle_type')
+
+            # Validate latitude and longitude
             if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
                 return JsonResponse({'status': 'error', 'message': 'Invalid latitude or longitude values.'})
 
+            # Create Point object for spatial data
             location = Point(longitude, latitude, srid=4326)  # Longitude first
-            parking_space = ParkingSpace.objects.create(location=location, vehicle_type=vehicle_type)
-            return JsonResponse({'status': 'success', 'message': 'Parking space saved!', 'id': parking_space.id})
+
+            # Create and save the parking space
+            parking_space = ParkingSpace.objects.create(
+                name=parking_name,  # Save the parking name
+                location=location,
+                vehicle_type=vehicle_type
+            )
+
+            return JsonResponse({
+                'status': 'success', 
+                'message': 'Parking space saved!', 
+                'id': parking_space.id
+            })
+
+        except ValueError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid latitude or longitude values.'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': f'Failed to save parking space: {e}'})
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 # View to find nearest parking spaces using KNN
 def search_nearest_parking_spaces(request):
     if request.method == 'GET':
@@ -91,6 +107,7 @@ def search_nearest_parking_spaces(request):
 
             response = [{
                 'id': space.id,
+                'name': space.name,
                 'vehicle_type': space.vehicle_type,
                 'distance': round(space.distance.m, 2),
                 'latitude': space.location.y,
