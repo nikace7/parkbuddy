@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
 <header class="container py-2 bg-white flex justify-between items-center">
@@ -30,7 +31,21 @@
    </clipPath>
    </defs>
    </svg>
-  </a>
-    <a href="{% url 'login' %}">Login/Register</a>
-  </header>
+  </a> 
+  <div>
+    {% if user.is_authenticated %}
+      <!-- Display profile info if the user is logged in -->
+      <div class="flex items-center">
+        <img src="{% static 'images/profile-icon.svg' %}" alt="Profile" class="w-8 h-8 rounded-full">
+        <div class="ml-2">
+          <span>{{ user.username }}</span>  <!-- Display username -->
+          <p class="text-sm text-gray-600">Phone: {{ user.userprofile.phone_number }}</p>  <!-- Display phone number -->
+        </div>
+      </div>
+    {% else %}
+      <!-- Display Login/Register if the user is not logged in -->
+      <a href="{% url 'login' %}" class="text-blue-500">Login/Register</a>
+    {% endif %}
+  </div>
+</header>
 {% endblock content %}

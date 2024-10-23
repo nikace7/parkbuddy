@@ -42,27 +42,43 @@ def geocode_location(location_name):
 
 # View to save parking space
 @csrf_exempt
-def save_parking_space(request):
+def save_parking_space(request): 
     if request.method == 'POST':
-        data = json.loads(request.body)
-        latitude = data.get('latitude')
-        longitude = data.get('longitude')
-        vehicle_type = data.get('vehicle_type')
-
         try:
-            latitude = float(latitude)
-            longitude = float(longitude)
+            data = json.loads(request.body)
 
+            # Extract data from request
+            parking_name = data.get('parking_name', 'Unnamed')  # Default to 'Unnamed' if empty
+            latitude = float(data.get('latitude'))
+            longitude = float(data.get('longitude'))
+            vehicle_type = data.get('vehicle_type')
+
+            # Validate latitude and longitude
             if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
                 return JsonResponse({'status': 'error', 'message': 'Invalid latitude or longitude values.'})
 
+            # Create Point object for spatial data
             location = Point(longitude, latitude, srid=4326)  # Longitude first
-            parking_space = ParkingSpace.objects.create(location=location, vehicle_type=vehicle_type)
-            return JsonResponse({'status': 'success', 'message': 'Parking space saved!', 'id': parking_space.id})
+
+            # Create and save the parking space
+            parking_space = ParkingSpace.objects.create(
+                name=parking_name,  # Save the parking name
+                location=location,
+                vehicle_type=vehicle_type
+            )
+
+            return JsonResponse({
+                'status': 'success', 
+                'message': 'Parking space saved!', 
+                'id': parking_space.id
+            })
+
+        except ValueError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid latitude or longitude values.'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': f'Failed to save parking space: {e}'})
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 # View to find nearest parking spaces using KNN
 def search_nearest_parking_spaces(request):
     if request.method == 'GET':
@@ -91,6 +107,7 @@ def search_nearest_parking_spaces(request):
 
             response = [{
                 'id': space.id,
+                'name': space.name,
                 'vehicle_type': space.vehicle_type,
                 'distance': round(space.distance.m, 2),
                 'latitude': space.location.y,
@@ -119,31 +136,41 @@ def send_otp(phone_number, otp):
 @csrf_exempt
 def login_view(request):
     if request.method == 'POST':
-        phone_number = request.POST.get('phone').strip()
+        phone_number = request.POST.get('phone')
 
-        if len(phone_number) != 10 or not phone_number.isdigit():
-            messages.error(request, 'Please enter a valid 10-digit phone number.')
-            return render(request, 'login.html')
-
+        # Check if a user with this phone number exists
         try:
-            user_profile = UserProfile.objects.get(phone_number=phone_number)
-            return redirect('login_otp', phone_number=phone_number)
-        except ObjectDoesNotExist:
+            profile = UserProfile.objects.get(phone_number=phone_number)
+            user = profile.user  # Access the associated User model
+        except UserProfile.DoesNotExist:
+            # If the user does not exist, create a new user
             user = User.objects.create(username=phone_number)
+            profile = UserProfile.objects.create(user=user, phone_number=phone_number)
             user.save()
-            UserProfile.objects.create(user=user, phone_number=phone_number)
+            profile.save()
 
-            otp = random.randint(100000, 999999)  # Generate a random 6-digit OTP
-            send_otp(phone_number, otp)  # Send the OTP
-            return redirect('login_otp', phone_number=phone_number)
+        # Generate an OTP
+        otp = random.randint(100000, 999999)
 
+        # Store the OTP in session
+        request.session['otp'] = otp
+        request.session['phone_number'] = phone_number
+
+        # Send the OTP to the user's phone number
+        send_otp(phone_number, otp)
+
+        # Redirect to the OTP verification view
+        return redirect('login_otp', phone_number=phone_number)  # Change from render to redirect
+
+    # If the request is GET, render the login page
     return render(request, 'login.html')
+
 @csrf_exempt
 def login_otp_view(request, phone_number):  # Accept phone_number as an argument
     if request.method == 'POST':
         otp = request.POST.get('otp')
         # Here you would validate the OTP with the Sparrow SMS API
-        # Assuming OTP verification logic is in place
+        # Assuming OTP verification logic is in placePlay 
         user_profile = UserProfile.objects.get(phone_number=phone_number)
         login(request, user_profile.user)
         return redirect('homepage')
