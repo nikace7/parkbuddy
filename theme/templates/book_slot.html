@@ -1,0 +1,59 @@
+{% extends "user_layout.html" %}
+{% load static %} <!-- Load static files library -->
+
+{% block head %}
+{% endblock head %}
+
+{% block content %}
+{{ block.super }}
+    <main class="flex-grow" x-data="{ costs: { bike: { hour: 35, halfHour: 15 }, car: { hour: 70, halfHour: 40 } }, vehicleType: 'bike', parkingDuration: { hour: 0, minutes: 30 } }">
+        <div class="grid grid-cols-2 w-full gap-4">
+            <!-- Slot booking details -->
+            <div class="p-4 flex flex-col gap-4 items-start">
+                <p class="font-bold text-3xl mb-2 text-blue-950">Booking details</p>
+                <div class="flex items-center gap-x-8 gap-y-3 flex-wrap">
+                    <div>
+                        <p>Arriving date:</p>
+                        <input type="date" class="h-8" />
+                    </div>
+                    <div>
+                        <p>Arriving time:</p>
+                        <input type="time" class="h-8" />
+                    </div>
+                    <div>
+                        <p>Parking duration:</p>
+                        <div>
+                            <input type="number" value="0" class="w-16 h-8" min="0" x-model="parkingDuration.hour" />
+                            <span>Hr</span>
+                            <input type="number" value="30" class="w-16 ml-2 h-8" min="0" max="30" step="30" x-model="parkingDuration.minutes" />
+                            <span>Min</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p>Vehicle type:</p>
+                        <select x-model="vehicleType">
+                            <option value="bike">Bike</option>
+                            <option value="car">Car</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="mt-8 text-2xl"><span class="text-blue-950 font-bold">Total price<br /></span><span>Rs. <span x-text="costs[vehicleType].hour"></span> x <span x-text="parkingDuration.hour"></span> hr</span> <span x-text="parseInt(parkingDuration.minutes) > 0 ? ` + ${costs[vehicleType].halfHour}` : ''"></span> = <span class="font-bold text-blue-950">Rs. <span x-text="parseInt(parkingDuration.hour) * costs[vehicleType].hour + parseInt(parkingDuration.minutes) * (costs[vehicleType].halfHour / 30)"></span></span></p>
+                <button class="mt-2 bg-green-700 text-white px-3 py-2 rounded-md disabled:bg-gray-600" x-bind:disabled="parseInt(parkingDuration.hour) == 0 && parseInt(parkingDuration.minutes) == 0">Complete order</button>
+            </div>
+            <!-- Parking place details -->
+            <div class="border border-gray-200 rounded-md p-2 flex flex-col gap-2">
+                <img src="https://cdn.pixabay.com/photo/2024/06/07/07/47/car-8814158_640.jpg" class="w-full h-auto" />
+                <div>
+                    <p class="text-blue-950 font-bold text-xl">Sumit hospital</p>
+                    <p class="text-sm">Gongabu</p>
+                </div>
+                <div>
+                    <p class="text-blue-950 font-bold text-xl">Details</p>
+                    <p class="text-sm">Details about this place goes here...</p>
+                </div>
+                <div class="w-full h-0 border-t border-dashed border-t-gray-500 mt-2" />
+                <p class="mt-4 text-sm font-bold">After purchasing, you will receive a personalized QR code. Simply scan your QR code at the designated entrance, and you're all set to park your vehicle with ease.</p>
+            </div>
+        </div>
+    </main>
+{% endblock content %}
