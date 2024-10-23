@@ -20,12 +20,11 @@ class UserProfile(models.Model):
 class ParkingSpace(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     location = PointField(geography=True, srid=4326)
-    location_name = models.CharField(max_length=100, blank=True, null=True)
     available = models.BooleanField(default=True)
     vehicle_type = models.CharField(max_length=10, choices=[('Car', 'Car'), ('Bike', 'Bike')])
 
     def __str__(self):
-        return f"{self.vehicle_type} Parking at {self.location}"
+        return f"{self.name}({self.vehicle_type} Parking at {self.location})"
 
 # Function to find nearest parking spaces
 def find_nearest_parking_spaces(user_latitude, user_longitude, max_distance_km=2, vehicle_type=None):
