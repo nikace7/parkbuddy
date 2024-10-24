@@ -6,8 +6,12 @@ from django.contrib.auth import login
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from django.http import HttpResponse
+from django.db.models import Count, Q
 from .models import ParkingSpace, find_nearest_parking_spaces, UserProfile
 from django.contrib.gis.geos import Point
+from django.core.serializers import (
+    serialize,
+)
 import json, random
 import requests 
 
@@ -176,6 +180,28 @@ def login_otp_view(request, phone_number):  # Accept phone_number as an argument
         return redirect('homepage')
 
     return render(request, 'login_otp.html', {'phone_number': phone_number})
+
+def dashboard_view(request):
+    parking_places = ParkingSpace.objects.annotate(
+        num_available_spaces=Count(
+            "parkingspace", filter=~Q(parkingspace__is_booked=True)
+        )
+    )
+
+    context = {}
+    context["markers"] = json.loads(
+        serialize(
+            "geojson",
+            parking_places,
+        )
+    )
+
+    place_spaces_count = {}
+    for place in parking_places:
+        place_spaces_count[place.id] = place.num_available_spaces
+    context["place_spaces_count"] = json.dumps(place_spaces_count)
+
+    return render(request, "index.html", context)
 
 
 def book_slot_view(request, id):
