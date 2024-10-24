@@ -181,10 +181,11 @@ def login_otp_view(request, phone_number):  # Accept phone_number as an argument
 
     return render(request, 'login_otp.html', {'phone_number': phone_number})
 
+@csrf_exempt
 def dashboard_view(request):
     parking_places = ParkingSpace.objects.annotate(
-        num_available_spaces=Count(
-            "parkingspace", filter=~Q(parkingspace__is_booked=True)
+        num_available_slots=Count(
+            "parkingslot", filter=~Q(parkingslot__is_booked=True)
         )
     )
 
@@ -196,10 +197,10 @@ def dashboard_view(request):
         )
     )
 
-    place_spaces_count = {}
+    place_slots_count = {}
     for place in parking_places:
-        place_spaces_count[place.id] = place.num_available_spaces
-    context["place_spaces_count"] = json.dumps(place_spaces_count)
+        place_slots_count[place.id] = place.num_available_slots
+    context["place_slots_count"] = json.dumps(place_slots_count)
 
     return render(request, "index.html", context)
 
