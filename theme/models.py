@@ -25,6 +25,15 @@ class ParkingSpace(models.Model):
 
     def __str__(self):
         return f"{self.name}({self.vehicle_type} Parking at {self.location})"
+    
+class ParkingSlot(models.Model):
+    parking_space = models.ForeignKey(ParkingSpace, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    booked_at = models.DateTimeField(auto_now_add=True)
+    released_at = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.parking_space.name} - {self.user.username} - {self.booked_at}"    
 
 # Function to find nearest parking spaces
 def find_nearest_parking_spaces(user_latitude, user_longitude, max_distance_km=2, vehicle_type=None):
