@@ -84,7 +84,7 @@ def search_nearest_parking_spaces(request):
     if request.method == 'GET':
         latitude = request.GET.get('latitude')
         longitude = request.GET.get('longitude')
-        location_name = request.GET.get('search_term')
+        location_name = request.GET.get('search_term ', 'Kathmandu')  # Default to Kathmandu
         vehicle_type = request.GET.get('vehicle_type', '')
 
         if latitude and longitude:
