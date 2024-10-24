@@ -1,0 +1,18 @@
+{% extends "user_layout.html" %}
+{% load static %} <!-- Load static files library -->
+
+{% block head %}
+{% endblock head %}
+
+{% block content %}
+{{ block.super }}
+    <main class="flex justify-center items-center h-full flex-grow">
+        <div class="border border-gray-300 rounded-md px-8 py-4 flex flex-col items-center">
+            <p class="text-xl font-semibold">Total price to pay: Rs. 500</p>
+            <button class="flex items-center">
+                <img src="https://blog.khalti.com/wp-content/uploads/2021/02/Naya_Khalti_Logo_icon_2018.jpg" height="100" width="100" />
+                <span>Pay with Khalti</span>
+            </button>
+        </div>
+    </main>
+{% endblock content %}

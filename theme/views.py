@@ -176,3 +176,15 @@ def login_otp_view(request, phone_number):  # Accept phone_number as an argument
         return redirect('homepage')
 
     return render(request, 'login_otp.html', {'phone_number': phone_number})
+
+
+def book_slot_view(request, id):
+    return render(request, 'book_slot.html')
+
+
+def payment_view(request):
+    return render(request, 'payment.html')
+
+
+def confirmation_view(request):
+    return render(request, 'confirmation.html')
