@@ -12,4 +12,5 @@ urlpatterns = [
     path('book-slot/<int:id>/', book_slot_view, name='book_slot'),
     path('payment/', payment_view, name='payment'),
     path('confirmation/', confirmation_view, name='confirmation'),
+    path("", dashboard_view, name="dashboard"),
 ]
