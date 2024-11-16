@@ -34,7 +34,7 @@
                     <input disabled class="border text-xs border-gray-500 rounded-lg py-1 text-center disabled:bg-gray-100" placeholder="10-digit number" autofocus value="{{ phone_number }}" />
                 </div>
                 <p class="text-center text-xs">Enter the OTP sent to your phone:</p>
-                <form class="flex gap-1 items-center" method="post" action="{% url 'homepage' %}">
+                <form class="flex gap-1 items-center" method="post" action="{% url 'login' %}">
                     {% csrf_token %}
                     <input type="hidden" name="phone" value="{{ phone_number }}" />
                     <input name="otp" class="border border-gray-500 rounded-lg py-1 text-center disabled:bg-gray-100" placeholder="6 digit OTP" autofocus />
@@ -42,6 +42,11 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </button>
                 </form>
+                {% if messages %}
+                    {% for message in messages %}
+                    <p class="text-red-600">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </main>
