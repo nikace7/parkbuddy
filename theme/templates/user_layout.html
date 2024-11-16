@@ -37,9 +37,15 @@
       <!-- Display profile info if the user is logged in -->
       <div class="flex items-center">
         <img src="{% static 'images/profile-icon.svg' %}" alt="Profile" class="w-8 h-8 rounded-full">
-        <div class="ml-2">
+        <div class="ml-2 flex flex-col">
+          {% if user.profile.is_parking_manager %}
+            <span class="text-sm text-gray-500">Parking Manager</span>
+          {% endif %}
           <span>{{ user.username }}</span>  <!-- Display username -->
-          <p class="text-sm text-gray-600">Phone: {{ user.userprofile.phone_number }}</p>  <!-- Display phone number -->
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type='submit'>Logout</button>
+          </form>
         </div>
       </div>
     {% else %}

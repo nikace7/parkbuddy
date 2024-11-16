@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import  ParkingSpace
+from .models import  ParkingSpace, UserProfile, ParkingSlot
 
 class ParkingSpaceAdmin(admin.ModelAdmin):
     list_display = ('name','vehicle_type', 'location', 'available')
@@ -8,3 +8,11 @@ class ParkingSpaceAdmin(admin.ModelAdmin):
 
 # Register the models with the admin site
 admin.site.register(ParkingSpace, ParkingSpaceAdmin)
+
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'is_parking_manager',)
+
+admin.site.register(UserProfile, UserProfileAdmin)
+
+
+admin.site.register(ParkingSlot)

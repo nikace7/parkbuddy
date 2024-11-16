@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "user_layout.html" %}
 
 {% block head %}
   <!-- Leaflet CSS -->
@@ -16,6 +16,7 @@
 {% endblock head %}
 
 {% block content %}
+{{ block.super }}
   <div class="container mx-auto py-10">
     <h1 class="text-2xl font-bold text-center mb-5">Add Parking Space</h1>
 
@@ -24,7 +25,8 @@
 
     <!-- Form for parking details -->
     <div class="bg-white p-5 shadow-md rounded-lg">
-      <form id="addParkingForm">
+      <form id="addParkingForm" method="POST" action="{% url 'save_parking_space' %}">
+        {% csrf_token %}
         <input type="hidden" id="latitude" name="latitude">
         <input type="hidden" id="longitude" name="longitude">
 
@@ -34,12 +36,11 @@
                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" 
                  placeholder="Enter parking name" required>
         </div>
-
         <div class="mb-4">
-          <label for="address" class="block text-gray-700">Address:</label>
-          <input type="text" id="address" name="address" 
+          <label for="slots_count" class="block text-gray-700">Slots Count:</label>
+          <input type="number" min="1" max="999" id="slots_count" name="slots_count" 
                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" 
-                 required>
+                 placeholder="Slots Count" required>
         </div>
 
         <div class="mb-4">
@@ -84,62 +85,11 @@
       marker = L.marker([lat, lng]).addTo(map);
       $('#latitude').val(lat);
       $('#longitude').val(lng);
-
-      // Reverse geocoding using Nominatim API
-      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
-        .then(response => response.json())
-        .then(data => {
-          $('#address').val(data?.address?.suburb || data?.address?.city || data?.address?.country || '');
-        })
-        .catch(error => {
-          console.error('Error fetching address:', error);
-          alert('Could not fetch address for the selected location.');
-        });
     }
 
     // Add marker on map click
     map.on('click', function (e) {
       addMarker(e.latlng.lat, e.latlng.lng);
-    });
-
-    // Submit form using AJAX
-    $('#addParkingForm').on('submit', function (e) {
-      e.preventDefault();
-
-      var lat = parseFloat($('#latitude').val());
-      var lng = parseFloat($('#longitude').val());
-      var parkingName = $('#parking_name').val();
-      var address = $('#address').val() || 'Unnamed';
-      var vehicleType = $('#vehicle_type').val();
-      var csrftoken = '{{ csrf_token }}';
-
-      $.ajax({
-        url: '{% url "save_parking_space" %}',
-        method: 'POST',
-        headers: { 'X-CSRFToken': csrftoken },
-        data: JSON.stringify({ 
-          latitude: lat, 
-          longitude: lng, 
-          parking_name: parkingName,
-          address: address, 
-          vehicle_type: vehicleType 
-        }),
-        contentType: 'application/json',
-        success: function (response) {
-          if (response.status === 'success') {
-            alert('Parking space saved successfully!');
-            $('#addParkingForm')[0].reset();
-            if (marker) map.removeLayer(marker);
-            marker = null;
-            map.setView([27.7172, 85.3240], 13); // Reset view
-          } else {
-            alert('Failed to save parking space: ' + response.message);
-          }
-        },
-        error: function () {
-          alert('Error while saving parking space.');
-        }
-      });
     });
   </script>
 {% endblock content %}
