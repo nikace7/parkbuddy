@@ -7,18 +7,22 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.db.models import Count, Q
-from .models import ParkingSpace, find_nearest_parking_spaces, UserProfile
+from .models import ParkingSpace, ParkingSlot, find_nearest_parking_spaces, UserProfile
 from django.contrib.gis.geos import Point
 from django.core.serializers import (
     serialize,
 )
 import json, random
 import requests 
+from django.contrib.auth import logout
 
 def index(request):
     return render(request, 'index.html')
 
 def add_parking_place_view(request):
+    if request.user.id == None or not request.user.profile.is_parking_manager:
+        return redirect('homepage')
+    
     return render(request, 'add_parking_place.html')
 
 # Function to handle geocoding of location names using Nominatim
@@ -48,41 +52,44 @@ def geocode_location(location_name):
 @csrf_exempt
 def save_parking_space(request): 
     if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
+        name = request.POST.get('parking_name')
+        vehicle_type = request.POST.get('vehicle_type')
+        latitude = request.POST.get('latitude')
+        longitude = request.POST.get('longitude')
+        slots_count = request.POST.get('slots_count')
 
-            # Extract data from request
-            parking_name = data.get('parking_name', 'Unnamed')  # Default to 'Unnamed' if empty
-            latitude = float(data.get('latitude'))
-            longitude = float(data.get('longitude'))
-            vehicle_type = data.get('vehicle_type')
+        location_name = ''
 
-            # Validate latitude and longitude
-            if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
-                return JsonResponse({'status': 'error', 'message': 'Invalid latitude or longitude values.'})
+        res = requests.get(
+                f"https://geocode.maps.co/reverse?api_key=65a96648e1cd3020225512hcq628bd0&lon={longitude}&lat={latitude}"
+            )
+        response = json.loads(res.text)
 
-            # Create Point object for spatial data
-            location = Point(longitude, latitude, srid=4326)  # Longitude first
+        if "suburb" in response["address"]:
+            location_name = response["address"]["suburb"]
+        elif "neighbourhood" in response["address"]:
+            location_name = response["address"]["neighbourhood"]
+        else:
+            location_name = response["address"]["city_district"]
 
-            # Create and save the parking space
-            parking_space = ParkingSpace.objects.create(
-                name=parking_name,  # Save the parking name
-                location=location,
-                vehicle_type=vehicle_type
+        parking_space = ParkingSpace.objects.create(
+            name=name,
+            location=Point(float(longitude), float(latitude)),
+            vehicle_type=vehicle_type,
+            location_name=location_name,
+        )
+        parking_space.save()
+
+        for i in range(int(slots_count)):
+            ParkingSlot.objects.create(
+                parking_space=parking_space,
+                slot_number=i+1
             )
 
-            return JsonResponse({
-                'status': 'success', 
-                'message': 'Parking space saved!', 
-                'id': parking_space.id
-            })
+        messages.info(request, 'Parking space added successfully.')
+        return redirect('homepage')
+        
 
-        except ValueError:
-            return JsonResponse({'status': 'error', 'message': 'Invalid latitude or longitude values.'})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': f'Failed to save parking space: {e}'})
-
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 # View to find nearest parking spaces using KNN
 def search_nearest_parking_spaces(request):
     if request.method == 'GET':
@@ -141,17 +148,26 @@ def send_otp(phone_number, otp):
 def login_view(request):
     if request.method == 'POST':
         phone_number = request.POST.get('phone')
+        otp = request.POST.get('otp')
 
         # Check if a user with this phone number exists
         try:
-            profile = UserProfile.objects.get(phone_number=phone_number)
-            user = profile.user  # Access the associated User model
-        except UserProfile.DoesNotExist:
+            user = User.objects.get(username=phone_number)
+        except User.DoesNotExist:
             # If the user does not exist, create a new user
             user = User.objects.create(username=phone_number)
-            profile = UserProfile.objects.create(user=user, phone_number=phone_number)
+            profile = UserProfile.objects.create(user=user)
             user.save()
             profile.save()
+
+        if otp != None:
+            # Check if the OTP is correct
+            if int(otp) == request.session['otp']:
+                login(request, user)
+                return redirect('homepage')
+            else:
+                messages.error(request, 'Invalid OTP. Please try again.')
+                return redirect('login_otp', phone_number=phone_number)
 
         # Generate an OTP
         otp = random.randint(100000, 999999)
@@ -169,14 +185,20 @@ def login_view(request):
     # If the request is GET, render the login page
     return render(request, 'login.html')
 
+
+def logout_api(request):
+    logout(request)
+    return redirect('homepage')
+
+
 @csrf_exempt
 def login_otp_view(request, phone_number):  # Accept phone_number as an argument
     if request.method == 'POST':
         otp = request.POST.get('otp')
         # Here you would validate the OTP with the Sparrow SMS API
         # Assuming OTP verification logic is in placePlay 
-        user_profile = UserProfile.objects.get(phone_number=phone_number)
-        login(request, user_profile.user)
+        user = User.objects.get(username=phone_number)
+        login(request, user)
         return redirect('homepage')
 
     return render(request, 'login_otp.html', {'phone_number': phone_number})

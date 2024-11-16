@@ -8,12 +8,11 @@ User = get_user_model()
 
 # User model to register users with phone numbers
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone_number = models.CharField(max_length=15, unique=True)  # Nepal country code + phone
-    is_verified = models.BooleanField(default=False)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    is_parking_manager = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.phone_number
+        return self.user.username
 
 class Vehicle(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -27,18 +26,17 @@ class ParkingSpace(models.Model):
     location = PointField(geography=True, srid=4326)
     available = models.BooleanField(default=True)
     vehicle_type = models.CharField(max_length=10, choices=[('Car', 'Car'), ('Bike', 'Bike')])
+    location_name = models.CharField(max_length=255)
 
     def __str__(self):
         return f"{self.name}({self.vehicle_type} Parking at {self.location})"
     
 class ParkingSlot(models.Model):
     parking_space = models.ForeignKey(ParkingSpace, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    booked_at = models.DateTimeField(auto_now_add=True)
-    released_at = models.DateTimeField(blank=True, null=True)
+    slot_number = models.IntegerField()
 
     def __str__(self):
-        return f"{self.parking_space.name} - {self.user.username} - {self.booked_at}"
+        return f"{self.parking_space.name} - #{self.slot_number}"
     
 class ParkingBooking(models.Model):
     space = models.ForeignKey(ParkingSpace, on_delete=models.CASCADE)

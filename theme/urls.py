@@ -9,6 +9,7 @@ urlpatterns = [
     path('search-nearest-parking/', search_nearest_parking_spaces, name='search_nearest_parking'),
     path('login/', login_view, name='login'),
     path('login-otp/<str:phone_number>/', login_otp_view, name='login_otp'),
+    path('logout', logout_api, name='logout'),
     path('book-slot/<int:id>/', book_slot_view, name='book_slot'),
     path('payment/', payment_view, name='payment'),
     path('confirmation/', confirmation_view, name='confirmation'),
