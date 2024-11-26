@@ -15,9 +15,30 @@ from django.core.serializers import (
 import json, random
 import requests 
 from django.contrib.auth import logout
+from django.core import serializers
 
 def index(request):
-    return render(request, 'index.html')
+    parking_spaces = ParkingSpace.objects.all()
+    parking_spaces_ctx = []
+    for space in parking_spaces:
+        parking_spaces_ctx.append({
+            'id': space.id,
+            'latitude': space.location[0],
+            'longitude': space.location[1],
+            'name': space.name,
+            'vehicle_type': space.vehicle_type,
+            'location_name': space.location_name,
+            'available': space.available,
+            'phone': space.user.username,
+            'available_slots_count': space.parkingslot_set.filter(is_booked=False).count(),
+            'price_per_hr': space.price_per_hr,
+            'price_per_half_hr': space.price_per_half_hr,
+            'image1': space.image1.url,
+            'image2': space.image2.url,
+            'image3': space.image3.url,
+        })
+
+    return render(request, 'index.html', {'parking_spaces': json.dumps(parking_spaces_ctx)})
 
 def add_parking_place_view(request):
     if request.user.id == None or not request.user.profile.is_parking_manager:
@@ -57,6 +78,11 @@ def save_parking_space(request):
         latitude = request.POST.get('latitude')
         longitude = request.POST.get('longitude')
         slots_count = request.POST.get('slots_count')
+        price_per_hr = request.POST.get('price_per_hr')
+        price_per_half_hr = request.POST.get('price_per_half_hr')
+        image1 = request.FILES.get('image1')
+        image2 = request.FILES.get('image2')
+        image3 = request.FILES.get('image3')
 
         location_name = ''
 
@@ -74,9 +100,15 @@ def save_parking_space(request):
 
         parking_space = ParkingSpace.objects.create(
             name=name,
-            location=Point(float(longitude), float(latitude)),
+            location=Point(float(latitude), float(longitude)),
             vehicle_type=vehicle_type,
             location_name=location_name,
+            user=request.user,
+            price_per_hr=price_per_hr,
+            price_per_half_hr=price_per_half_hr,
+            image1 = image1,
+            image2 = image2,
+            image3 = image3,
         )
         parking_space.save()
 
@@ -86,8 +118,14 @@ def save_parking_space(request):
                 slot_number=i+1
             )
 
-        messages.info(request, 'Parking space added successfully.')
-        return redirect('homepage')
+        add_another_vehicle_type = request.POST.get('action') == 'another_vehicle_type'
+
+        if add_another_vehicle_type:
+            vehicle_type = 'Car' if vehicle_type == 'Bike' else 'Bike'
+            return render(request, 'add_parking_place.html', {'location_name': name, 'latitude': latitude, 'longitude': longitude, 'vehicle_type': vehicle_type})
+        else:
+            messages.info(request, 'Parking space added successfully.')
+            return redirect('homepage')
         
 
 # View to find nearest parking spaces using KNN
