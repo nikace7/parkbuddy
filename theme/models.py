@@ -22,11 +22,19 @@ class Vehicle(models.Model):
 #Parking Space model to store parking locations
 
 class ParkingSpace(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, blank=True, null=True)
     location = PointField(geography=True, srid=4326)
     available = models.BooleanField(default=True)
     vehicle_type = models.CharField(max_length=10, choices=[('Car', 'Car'), ('Bike', 'Bike')])
     location_name = models.CharField(max_length=255)
+
+    price_per_hr = models.IntegerField()
+    price_per_half_hr = models.IntegerField()
+
+    image1 = models.ImageField(upload_to='parking_images/', blank=True, null=True)
+    image2 = models.ImageField(upload_to='parking_images/', blank=True, null=True)
+    image3 = models.ImageField(upload_to='parking_images/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.name}({self.vehicle_type} Parking at {self.location})"
@@ -34,6 +42,7 @@ class ParkingSpace(models.Model):
 class ParkingSlot(models.Model):
     parking_space = models.ForeignKey(ParkingSpace, on_delete=models.CASCADE)
     slot_number = models.IntegerField()
+    is_booked = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.parking_space.name} - #{self.slot_number}"

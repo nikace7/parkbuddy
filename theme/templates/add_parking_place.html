@@ -25,7 +25,7 @@
 
     <!-- Form for parking details -->
     <div class="bg-white p-5 shadow-md rounded-lg">
-      <form id="addParkingForm" method="POST" action="{% url 'save_parking_space' %}">
+      <form id="addParkingForm" method="POST" action="{% url 'save_parking_space' %}" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" id="latitude" name="latitude">
         <input type="hidden" id="longitude" name="longitude">
@@ -34,7 +34,7 @@
           <label for="parking_name" class="block text-gray-700">Parking Name:</label>
           <input type="text" id="parking_name" name="parking_name" 
                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" 
-                 placeholder="Enter parking name" required>
+                 placeholder="Enter parking name" required value="{{ location_name }}">
         </div>
         <div class="mb-4">
           <label for="slots_count" class="block text-gray-700">Slots Count:</label>
@@ -49,16 +49,54 @@
                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" 
                   required>
             <option value="">Select a vehicle type</option>
-            <option value="Car">Car</option>
-            <option value="Bike">Bike</option>
+            <option value="Car" {% if vehicle_type == 'Car' %}selected{% endif %}>Car</option>
+            <option value="Bike" {% if vehicle_type == 'Bike' %}selected{% endif %}>Bike</option>
           </select>
         </div>
 
-        <div class="flex justify-center">
-          <button type="submit" 
+        <div class="flex items-center gap-3">
+          <div>
+            <label for="price_per_hr">Price per Hour:</label>
+            <input type="number" min="1" id="price_per_hr" name="price_per_hr" 
+                   class="mt-1 block w-20 border-gray-300 rounded-md shadow-sm" 
+                   placeholder="in Rs" required>
+          </div>
+          <div>
+            <label for="price_per_half_hr">Price per Half Hour:</label>
+            <input type="number" min="1" id="price_per_half_hr" name="price_per_half_hr" 
+                   class="mt-1 block w-20 border-gray-300 rounded-md shadow-sm" 
+                   placeholder="in Rs" required>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-3 mt-6">
+          <div>
+            <label for="image1">Image 1:</label>
+            <input type="file" name="image1" id="image1" required accept="image/png, image/jpeg, image/webp" />
+          </div>
+          <div>
+            <label for="image2">Image 2:</label>
+            <input type="file" name="image2" id="image2" required accept="image/png, image/jpeg, image/webp" />
+          </div>
+          <div>
+            <label for="image3">Image 3:</label>
+            <input type="file" name="image3" id="image3" required accept="image/png, image/jpeg, image/webp" />
+          </div>
+        </div>
+
+        <div class="flex justify-center items-center gap-6">
+          <button type="submit"
                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Save Parking Space
           </button>
+
+          {% if latitude and longitude %}
+          {% else %}
+          <button type="submit" name="action" value="another_vehicle_type"
+                  class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Save and Add For Another Vehicle Type
+          </button>
+          {% endif %}
         </div>
       </form>
     </div>
@@ -86,6 +124,10 @@
       $('#latitude').val(lat);
       $('#longitude').val(lng);
     }
+
+    {% if latitude and longitude %}
+      addMarker({{ latitude }}, {{ longitude }});
+    {% endif %}
 
     // Add marker on map click
     map.on('click', function (e) {
