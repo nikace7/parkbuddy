@@ -43,17 +43,38 @@ https://cdn.jsdelivr.net/npm/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.m
     <div id="map" class="h-full flex-grow"></div>
     <!-- Draggable Search Box -->
     <div id="search-box"
-         class="absolute top-16 left-32 bg-white z-[9999] p-5 pt-7 rounded-lg opacity-75 hover:opacity-100 transition-opacity">
+         class="absolute top-16 left-32 bg-white z-[9999] p-5 pt-7 rounded-lg opacity-75 hover:opacity-100 transition-opacity"
+         x-data="{vehicleType: 'any'}"
+         x-effect="() => {
+            const bikeIcons = $('.icon-bike');
+            const carIcons = $('.icon-car');
+            if (vehicleType === 'bike') {
+                bikeIcons.show();
+                carIcons.hide();
+            } else if (vehicleType === 'car') {
+                bikeIcons.hide();
+                carIcons.show();
+            } else {
+                bikeIcons.show();
+                carIcons.show();
+            }
+         }">
       <p class="font-semibold text-lg">Search for parking place</p>
       <input id="parking-search" placeholder="Example: Nayabazar"
              class="outline-none border px-2 py-1 rounded mt-2 w-[250px]" />
       <p class="mt-2">Vehicle type</p>
-      <select id="vehicle-type" class="w-full bg-gray-100 px-2 py-1 rounded mt-1">
-        <option value="">Any</option>
-        <option value="Bike">Bike</option>
-        <option value="Car">Car</option>
+      <select id="vehicle-type" class="w-full bg-gray-100 px-2 py-1 rounded mt-1" x-model="vehicleType">
+        <option value="any">Any</option>
+        <option value="bike">Bike</option>
+        <option value="car">Car</option>
       </select>
-      <button id="search-button" class="bg-blue-500 text-white px-3 py-1 rounded mt-3">Search</button>
+      <button id="search-button" class="bg-blue-500 text-white px-3 py-1 rounded mt-3 flex gap-4 items-center">
+        Search
+        <svg id="is-searching" class="animate-spin -ml-1 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="display: none;">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </button>
     </div>
     <!-- Popup for parking details -->
     <div id="parking-details-popup" class="absolute right-0 w-[300px] h-full bg-white z-[9999] overflow-auto" style="display: none">
@@ -82,7 +103,7 @@ https://cdn.jsdelivr.net/npm/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.m
                     <svg class="h-5 w-5 text-green-500" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>
                 </div>
             </div>
-            <button class="bg-gray-950 text-gray-100 font-semibold uppercase text-xs py-2 rounded-lg">Book slots now</button>
+            <a href="#" id="book-link" class="w-full"><button class="bg-gray-950 text-gray-100 font-semibold uppercase text-xs py-2 rounded-lg w-full">Book slots now</button></a>
             <div class="flex flex-col text-sm">
                 <p>Slots available: <span class="font-bold" id="selected-slots-count"></span></p>
             </div>
@@ -159,9 +180,14 @@ https://cdn.jsdelivr.net/npm/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.m
     var parkingSpaces = JSON.parse("{{ parking_spaces|escapejs }}");  // To store map markers
     var markers = [];
 
-    var bothVehicleTypeLocations = new Set([]);
+    var bothVehicleTypeLocations = {};
     parkingSpaces.forEach(function(parkingSpace) {
-        bothVehicleTypeLocations.add(`${parkingSpace.latitude}${parkingSpace.longitude}`);
+        const key = `${parkingSpace.latitude}${parkingSpace.longitude}`;
+        if (bothVehicleTypeLocations[key]) {
+            bothVehicleTypeLocations[key] += 1;
+        } else {
+            bothVehicleTypeLocations[key] = 1;
+        }
     });
 
     parkingSpaces.forEach(function(parkingSpace) {
@@ -185,12 +211,11 @@ https://cdn.jsdelivr.net/npm/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.m
             }
         }
 
-        const isBothTypes = bothVehicleTypeLocations.has(`${parkingSpace.latitude}${parkingSpace.longitude}`);
+        const isBothTypes = bothVehicleTypeLocations[`${parkingSpace.latitude}${parkingSpace.longitude}`] > 1;
 
         var icon = getIcon(parkingSpace.vehicle_type, parkingSpace.available_slots_count);
 
         var marker = L.marker([parkingSpace.latitude, parkingSpace.longitude], { icon: icon, rotationAngle: isBothTypes ? (parkingSpace.vehicle_type == 'Bike' ? 45 : -45) : undefined }).addTo(map).on('click', function(e) {
-            console.log(parkingSpace)
             map.flyTo(e.latlng, 17)
             $("#parking-details-popup")[0].style.display = "block"
             $("#selected-name").text(parkingSpace.name);
@@ -233,7 +258,11 @@ https://cdn.jsdelivr.net/npm/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.m
                 </div>
             `);
             new Splide('#parking-images-carousel').mount();
+
+            $("#select-id").val(parkingSpace.id);
+            $("#book-link").attr("href", `/book/${parkingSpace.id}`);
         });
+        L.DomUtil.addClass(marker._icon, `icon-${parkingSpace.vehicle_type.toLowerCase()}`);
         markers.push(marker);
     });
 
@@ -248,39 +277,11 @@ https://cdn.jsdelivr.net/npm/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.m
         markers = [];
     }
 
-    // Function to place markers on the map with appropriate icons
-    function addMarkers(parkingSpaces) {
-        clearMarkers();
-
-        parkingSpaces.forEach(function(parkingSpace) {
-            if (parkingSpace.latitude && parkingSpace.longitude) {
-                var icon = parkingSpace.vehicle_type === 'Bike' ? bikeIcon : carIcon;
-
-                var marker = L.marker([parkingSpace.latitude, parkingSpace.longitude], { icon: icon }).addTo(map);
-                marker.bindPopup(`
-                    <strong>Parking Space:</strong> ${parkingSpace.name || 'Unnamed'}<br>
-                    <strong>Vehicle Type:</strong> ${parkingSpace.vehicle_type}<br>
-                    <strong>Distance:</strong> ${parkingSpace.distance} meters
-                `);
-                markers.push(marker);
-            }
-        });
-
-        if (markers.length > 0) {
-            var group = new L.featureGroup(markers);
-            map.fitBounds(group.getBounds());
-        }
-    }
-
     // Event listener for search button click
     $('#search-button').on('click', function () {
-        var searchTerm = $('#parking-search').val().trim();
-        var vehicleType = $('#vehicle-type').val();
+        var searchTerm = $('#parking-search').val().trim() + ', kathmandu';
 
-        if (!searchTerm) {
-            alert('Please enter a location to search.');
-            return;
-        }
+        $("#is-searching").show();
 
         // Use Nominatim API to get coordinates from the location name
         $.ajax({
@@ -289,44 +290,22 @@ https://cdn.jsdelivr.net/npm/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.m
             data: {
                 q: searchTerm,
                 format: "json",
+                countrycodes: "np",
                 limit: 1
             },
             success: function (geoResponse) {
-                console.log("Nominatim API Response:", geoResponse); // Debugging response
-
+                $("#is-searching").hide();
                 if (geoResponse.length > 0) {
-                    var location = geoResponse[0];
-                    var userLat = location.lat;
-                    var userLng = location.lon;
-
-                    // AJAX request to backend to perform KNN search
-                    $.ajax({
-                        url: "{% url 'search_nearest_parking' %}",
-                        type: "GET",
-                        data: {
-                            'latitude': userLat,
-                            'longitude': userLng,
-                            'vehicle_type': vehicleType,
-                        },
-                        success: function (response) {
-                            console.log("KNN Search Response:", response); 
-
-                            if (response.status === 'success' && response.data.length > 0) {
-                                addMarkers(response.data);  // Add new markers based on KNN search
-                            } else {
-                                clearMarkers();  // Clear the map if no results
-                                alert(response.message || 'No parking spaces found.');
-                            }
-                        },
-                        error: function () {
-                            alert("Failed to retrieve parking spaces.");
-                        }
-                    });
+                    const lat = geoResponse[0].lat;
+                    const lon = geoResponse[0].lon;
+                    
+                    map.flyTo([lat, lon], 17)
                 } else {
                     alert('Location not found. Please try another name.');
                 }
             },
             error: function () {
+                $("#is-searching").hide();
                 alert('Failed to retrieve location coordinates.');
             }
         });
