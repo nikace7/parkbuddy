@@ -83,6 +83,7 @@ def save_parking_space(request):
         image1 = request.FILES.get('image1')
         image2 = request.FILES.get('image2')
         image3 = request.FILES.get('image3')
+        info = request.POST.get('info')
 
         location_name = ''
 
@@ -109,6 +110,7 @@ def save_parking_space(request):
             image1 = image1,
             image2 = image2,
             image3 = image3,
+            info = info,
         )
         parking_space.save()
 
