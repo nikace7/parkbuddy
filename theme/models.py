@@ -36,6 +36,8 @@ class ParkingSpace(models.Model):
     image2 = models.ImageField(upload_to='parking_images/', blank=True, null=True)
     image3 = models.ImageField(upload_to='parking_images/', blank=True, null=True)
 
+    info = models.TextField()
+
     def __str__(self):
         return f"{self.name}({self.vehicle_type} Parking at {self.location})"
     
