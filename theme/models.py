@@ -14,12 +14,6 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username
 
-class Vehicle(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    vehicle_type = models.CharField(max_length=100)
-    registration_number = models.CharField(max_length=20)
-
-#Parking Space model to store parking locations
 
 class ParkingSpace(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -52,12 +46,14 @@ class ParkingSlot(models.Model):
 class ParkingBooking(models.Model):
     space = models.ForeignKey(ParkingSpace, on_delete=models.CASCADE)
     slot = models.ForeignKey(ParkingSlot, on_delete=models.CASCADE)
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
+    vehicle_number = models.TextField()
 
     arriving_at = models.DateTimeField()
     exiting_at = models.DateTimeField()
     
     is_paid = models.BooleanField(default=False)    
+
+    price = models.IntegerField()
 
 class Payment(models.Model):
     slot = models.OneToOneField(ParkingSlot, on_delete=models.CASCADE)

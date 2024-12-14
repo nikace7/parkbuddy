@@ -12,17 +12,20 @@
 {{ block.super }}
     <main class="flex justify-center items-center h-full flex-grow">
         <div class="flex flex-col items-center">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/800px-QR_code_for_mobile_English_Wikipedia.svg.png" height="200" width="200" />
+            <div id="qrcode"></div>
             <p class="font-bold">Booking Date and Time</p>
             <div class="flex items-center gap-2">
-                <p class="font-bold text-5xl">10</p>
+                <p class="font-bold text-5xl">{{ arriving_date }}</p>
                 <div>
-                    <p class="leading-tight font-bold">January</p>
-                    <p class="leading-tight">Sunday</p>
+                    <p class="leading-tight font-bold">{{ arriving_month }}</p>
+                    <p class="leading-tight">{{ arriving_day }}</p>
                 </div>
             </div>
-            <p>10:00 AM - 11:00 AM</p>
+            <p>{{ arriving_time }} - {{ exiting_time }}</p>
             <p>Vehicle type: <span class="font-semibold">Bike</span></p>
+            <p>Location name: <span>{{ parking_name }}, {{ location_name }}</span></p>
+            <p class="mt-4">Has paid: {% if is_paid %}Yes {%else%} No{% endif %}</p>
+            {%if not is_paid %}<p> <span class="font-semibold text-2xl">Rs {{ price }}</span></p>{%endif %}
             <div class="text-center text-xs mt-4">
                 <p class="leading-tight">All sales are final. No-refunds or exchange is possible.</p>
                 <p class="leading-tight">Please check the date and time of the booking.</p>
@@ -38,5 +41,18 @@
             $("#download-ticket")[0].style.display = 'none';
             window.print();
         });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+            integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
+    <!-- For QR Code generation -->
+    <script type="text/javascript">
+    new QRCode(document.getElementById("qrcode"), {
+        text: window.location.href,
+        width: 128,
+        height: 128,
+    });
     </script>
 {% endblock content %}
