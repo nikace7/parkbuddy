@@ -11,7 +11,7 @@ urlpatterns = [
     path('login-otp/<str:phone_number>/', login_otp_view, name='login_otp'),
     path('logout', logout_api, name='logout'),
     path('book/<int:id>/', book_slot_view, name='book_slot'),
-    path('payment/', payment_view, name='payment'),
-    path('confirmation/', confirmation_view, name='confirmation'),
+    path('book/<int:id>/payment', payment_view, name='book_slot_payment'),
+    path('confirmation/<int:id>/', confirmation_view, name='confirmation'),
     path("", dashboard_view, name="dashboard"),
 ]

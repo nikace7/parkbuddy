@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.db.models import Count, Q
-from .models import ParkingSpace, ParkingSlot, find_nearest_parking_spaces, UserProfile
+from .models import ParkingSpace, ParkingSlot, find_nearest_parking_spaces, UserProfile, ParkingBooking
 from django.contrib.gis.geos import Point
 from django.core.serializers import (
     serialize,
@@ -16,6 +16,7 @@ import json, random
 import requests 
 from django.contrib.auth import logout
 from django.core import serializers
+from datetime import datetime, timedelta
 
 def index(request):
     parking_spaces = ParkingSpace.objects.all()
@@ -268,12 +269,89 @@ def dashboard_view(request):
 
 
 def book_slot_view(request, id):
-    return render(request, 'book_slot.html')
+    if request.method == 'POST':
+        parking_space = ParkingSpace.objects.get(id=id)
+        price = request.POST.get('price')
+        date = request.POST.get('date')
+        time = request.POST.get('time')
+        vehicle_number = request.POST.get('vehicle_number')
+        duration_hours = request.POST.get('duration_hours')
+        duration_minutes = request.POST.get('duration_minutes')
+
+        parking_slot = ParkingSlot.objects.filter(parking_space=parking_space, is_booked=False).first()
+
+        arriving_at = datetime.strptime(f'{date} {time}', '%Y-%m-%d %H:%M')
+        exiting_at = arriving_at + timedelta(hours=int(duration_hours), minutes=int(duration_minutes))
+
+        booking = ParkingBooking.objects.create(
+            space=parking_space,
+            slot=parking_slot,
+            vehicle_number=vehicle_number,
+            arriving_at=arriving_at,
+            exiting_at=exiting_at,
+            price=price,
+        )
+
+        return redirect(
+            'book_slot_payment',
+            id=booking.id
+        )
+    else:
+        parking_space = ParkingSpace.objects.get(id=id)
+        if parking_space is None:
+            return redirect('homepage')
+
+        return render(request, 'book_slot.html', {'parking_space': parking_space})
+
+def payment_view(request, id):
+    parking_booking = ParkingBooking.objects.get(id=id)
+
+    if request.method == 'POST':
+        # Construct payload for Khalti
+        # ----------------------------
+
+        url = "https://a.khalti.com/api/v2/epayment/initiate/"
+
+        payload = json.dumps(
+            {
+                "return_url": "http://127.0.0.1:8000/checkout",
+                "website_url": "http://127.0.0.1:8000",
+                "amount": str(parking_booking.price * 100),  # Khalti accepts amount in paisa
+                "purchase_order_id": parking_booking.id,
+                "purchase_order_name": "Park & Go",
+                "customer_info": {
+                    "name": request.user.username,
+                },
+            }
+        )
+        headers = {
+            "Authorization": "key live_secret_key_68791341fdd94846a146f0457ff7b455",
+            "Content-Type": "application/json",
+        }
+
+        response = requests.request("POST", url, headers=headers, data=payload)
+        return redirect(json.loads(response.text)["payment_url"])
+    else:
+        return render(request, 'payment.html', { 'price': parking_booking.price, 'id': id })
 
 
-def payment_view(request):
-    return render(request, 'payment.html')
+def confirmation_view(request, id):
+    week_days = [
+        'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
+    ]
 
+    parking_booking = ParkingBooking.objects.get(id=id)
+    parking_space = ParkingSpace.objects.get(id=parking_booking.space.id)
 
-def confirmation_view(request):
-    return render(request, 'confirmation.html')
+    return render(request, 'confirmation.html', {
+        'arriving_date': parking_booking.arriving_at.strftime('%d'),
+        'arriving_month': parking_booking.arriving_at.strftime('%b'),
+        'arriving_day': week_days[parking_booking.arriving_at.weekday()],
+        'arriving_time': parking_booking.arriving_at.strftime('%I:%M %p'),
+        'exiting_time': parking_booking.exiting_at.strftime('%I:%M %p'),
+        'vehicle_type': parking_space.vehicle_type,
+        'parking_name': parking_space.name,
+        'location_name': parking_space.location_name,
+        'is_paid': parking_booking.is_paid,
+        'price': parking_booking.price,
+    })
