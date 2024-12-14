@@ -2,58 +2,84 @@
 {% load static %} <!-- Load static files library -->
 
 {% block head %}
+    <!-- Splide -->
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css" rel="stylesheet">
 {% endblock head %}
 
 {% block content %}
 {{ block.super }}
-    <main class="flex-grow" x-data="{ costs: { bike: { hour: 35, halfHour: 15 }, car: { hour: 70, halfHour: 40 } }, vehicleType: 'bike', parkingDuration: { hour: 0, minutes: 30 } }">
-        <div class="grid grid-cols-2 w-full gap-4">
+    <main class="flex-grow" x-data="{ costs: { bike: { hour: {{ parking_space.price_per_hr }}, halfHour: {{ parking_space.price_per_half_hr }} }, car: { hour: {{ parking_space.price_per_hr }}, halfHour: {{ parking_space.price_per_half_hr }} } }, vehicleType: 'bike', parkingDuration: { hour: 0, minutes: 30 }, arrivingDate: null, arrivingTime: null, isBeforeToday: false }"
+    x-effect="() => {
+        isBeforeToday = new Date(`${arrivingDate} ${arrivingTime}`) < new Date();
+    }"
+    >
+        <form class="grid grid-cols-2 w-full gap-4" method="post">
+            {% csrf_token %}
             <!-- Slot booking details -->
             <div class="p-4 flex flex-col gap-4 items-start">
                 <p class="font-bold text-3xl mb-2 text-blue-950">Booking details</p>
                 <div class="flex items-center gap-x-8 gap-y-3 flex-wrap">
+                    <input type="hidden" name="price" x-model="parseInt(parkingDuration.hour) * costs[vehicleType].hour + parseInt(parkingDuration.minutes) * (costs[vehicleType].halfHour / 30)" />
                     <div>
                         <p>Arriving date:</p>
-                        <input type="date" class="h-8" />
+                        <input name="date" type="date" class="h-8" required x-model="arrivingDate" />
                     </div>
                     <div>
                         <p>Arriving time:</p>
-                        <input type="time" class="h-8" />
+                        <input name="time" type="time" class="h-8" required x-model="arrivingTime" />
                     </div>
                     <div>
                         <p>Parking duration:</p>
                         <div>
-                            <input type="number" value="0" class="w-16 h-8" min="0" x-model="parkingDuration.hour" />
+                            <input type="number" value="0" class="w-16 h-8" min="0" x-model="parkingDuration.hour" name="duration_hours" />
                             <span>Hr</span>
-                            <input type="number" value="30" class="w-16 ml-2 h-8" min="0" max="30" step="30" x-model="parkingDuration.minutes" />
+                            <input type="number" value="30" class="w-16 ml-2 h-8" min="0" max="30" step="30" x-model="parkingDuration.minutes" name="duration_minutes" />
                             <span>Min</span>
                         </div>
                     </div>
                     <div>
-                        <p>Vehicle type:</p>
-                        <select x-model="vehicleType">
-                            <option value="bike">Bike</option>
-                            <option value="car">Car</option>
-                        </select>
+                        <p>Vehicle number:</p>
+                        <input type="number" min="0" max="9999" class="w-24 h-8" min="0" name="vehicle_number" class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                     </div>
                 </div>
+                <p x class="text-red-600" x-show="isBeforeToday">Please select the date and time in the future</p>
                 <p class="mt-8 text-2xl"><span class="text-blue-950 font-bold">Total price<br /></span><span>Rs. <span x-text="costs[vehicleType].hour"></span> x <span x-text="parkingDuration.hour"></span> hr</span> <span x-text="parseInt(parkingDuration.minutes) > 0 ? ` + ${costs[vehicleType].halfHour}` : ''"></span> = <span class="font-bold text-blue-950">Rs. <span x-text="parseInt(parkingDuration.hour) * costs[vehicleType].hour + parseInt(parkingDuration.minutes) * (costs[vehicleType].halfHour / 30)"></span></span></p>
-                <button class="mt-2 bg-green-700 text-white px-3 py-2 rounded-md disabled:bg-gray-600" x-bind:disabled="parseInt(parkingDuration.hour) == 0 && parseInt(parkingDuration.minutes) == 0">Complete order</button>
+                <button class="mt-2 bg-green-700 text-white px-3 py-2 rounded-md disabled:bg-gray-600" x-bind:disabled="(parseInt(parkingDuration.hour) == 0 && parseInt(parkingDuration.minutes) == 0) || isBeforeToday || (arrivingDate == null || arrivingTime == null)">Complete Booking</button>
             </div>
             <!-- Parking place details -->
             <div class="border border-gray-200 rounded-md p-2 flex flex-col gap-2">
-                <img src="https://cdn.pixabay.com/photo/2024/06/07/07/47/car-8814158_640.jpg" class="w-full h-auto" />
+                <div id="parking-images-carousel" class="splide w-full h-auto">
+                    <div class="splide__track">
+                        <ul class="splide__list">
+                            <li class="splide__slide">
+                                <img src="{{ parking_space.image1.url }}" class="w-full h-auto" />
+                            </li>
+                            <li class="splide__slide">
+                                <img src="{{ parking_space.image2.url }}" class="w-full h-auto" />
+                            </li>
+                            <li class="splide__slide">
+                                <img src="{{ parking_space.image3.url }}" class="w-full h-auto" />
+                            </li>
+                        </ul>
+                    </div>
+                </div>
                 <div>
-                    <p class="text-blue-950 font-bold text-xl">Sumit hospital</p>
-                    <p class="text-sm">Gongabu</p>
+                    <p class="text-blue-950 font-bold text-xl">{{ parking_space.name }}</p>
+                    <p class="text-sm">{{ parking_space.location_name }}</p>
                 </div>
                 <div>
                     <p class="text-blue-950 font-bold text-xl">Details</p>
-                    <p class="text-sm">Details about this place goes here...</p>
+                    <p class="text-sm">{{ parking_space.info }}</p>
                 </div>
                 <div class="w-full h-0 border-t border-dashed border-t-gray-500 mt-2" />
                 <p class="mt-4 text-sm font-bold">After purchasing, you will receive a personalized QR code. Simply scan your QR code at the designated entrance, and you're all set to park your vehicle with ease.</p>
             </div>
-        </div>
+        </form>
     </main>
+    <script>
+        $(document).ready(() => {
+            new Splide('#parking-images-carousel').mount();
+        });
+    </script>
 {% endblock content %}
