@@ -270,6 +270,10 @@ def dashboard_view(request):
 
 
 def book_slot_view(request, id):
+    if request.user.id == None:
+        messages.info(request, 'Please login to book a parking slot.')
+        return redirect('login')
+
     if request.method == 'POST':
         parking_space = ParkingSpace.objects.get(id=id)
         price = request.POST.get('price')
@@ -285,6 +289,7 @@ def book_slot_view(request, id):
         exiting_at = arriving_at + timedelta(hours=int(duration_hours), minutes=int(duration_minutes))
 
         booking = ParkingBooking.objects.create(
+            booked_by=request.user,
             space=parking_space,
             slot=parking_slot,
             vehicle_number=vehicle_number,
@@ -339,7 +344,7 @@ def payment_view(request, id):
 
         payload = json.dumps(
             {
-                "return_url": "http://127.0.0.1:8000/checkout",
+                "return_url": "http://127.0.0.1:8000/khalti/return",
                 "website_url": "http://127.0.0.1:8000",
                 "amount": str(parking_booking.price * 100),  # Khalti accepts amount in paisa
                 "purchase_order_id": parking_booking.id,
@@ -383,11 +388,34 @@ def confirmation_view(request, id):
 
 
 
+def view_bookings(request):
+    all_bookings = ParkingBooking.objects.filter(booked_by=request.user)
+    upcoming_bookings = []
+    past_bookings = []
+
+    for booking in all_bookings:
+        if booking.arriving_at > datetime.now().replace(tzinfo=pytz.UTC):
+            upcoming_bookings.append(booking)
+        else:
+            past_bookings.append(booking)
+
+    return render(request, 'view_bookings.html', {'upcoming_bookings': upcoming_bookings, 'past_bookings': past_bookings})
 
 
 
+def khalti_return(request):
+    if request.method == 'GET':
+        parking_booking_id = request.GET.get('purchase_order_id')
+        status = request.GET.get('status')
 
+        if status == 'Completed':
+            booking = ParkingBooking.objects.get(id=parking_booking_id)
+            booking.is_paid = True
+            booking.save()
 
+            return redirect('confirmation', id=parking_booking_id)
+        else:
+            return HttpResponse('Payment failed. Please try again.')
 
 
 

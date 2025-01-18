@@ -45,6 +45,7 @@ class ParkingSlot(models.Model):
         return f"{self.parking_space.name} - #{self.slot_number}"
     
 class ParkingBooking(models.Model):
+    booked_by = models.ForeignKey(User, on_delete=models.CASCADE)
     space = models.ForeignKey(ParkingSpace, on_delete=models.CASCADE)
     slot = models.ForeignKey(ParkingSlot, on_delete=models.CASCADE)
     vehicle_number = models.TextField()
