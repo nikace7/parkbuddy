@@ -9,12 +9,27 @@
 
 {% block content %}
 {{ block.super }}
-    <main class="flex-grow" x-data="{ costs: { bike: { hour: {{ parking_space.price_per_hr }}, halfHour: {{ parking_space.price_per_half_hr }} }, car: { hour: {{ parking_space.price_per_hr }}, halfHour: {{ parking_space.price_per_half_hr }} } }, vehicleType: 'bike', parkingDuration: { hour: 0, minutes: 30 }, arrivingDate: null, arrivingTime: null, isBeforeToday: false }"
+    <main class="flex-grow" x-data="{ costs: { bike: { hour: {{ parking_space.price_per_hr }}, halfHour: {{ parking_space.price_per_half_hr }} }, car: { hour: {{ parking_space.price_per_hr }}, halfHour: {{ parking_space.price_per_half_hr }} } }, vehicleType: 'bike', parkingDuration: { hour: 0, minutes: 30 }, arrivingDate: null, arrivingTime: null, isBeforeToday: false, isParkingSlotAvailable: true }"
     x-effect="() => {
         isBeforeToday = new Date(`${arrivingDate} ${arrivingTime}`) < new Date();
     }"
     >
-        <form class="grid grid-cols-2 w-full gap-4" method="post">
+        <form class="grid grid-cols-2 w-full gap-4" method="post"
+            x-effect="() => {
+                if (arrivingDate == null || arrivingTime == null) {
+                    return;
+                }
+                fetch('/is-slot-available?parking_space_id={{ parking_space.id }}&arriving_date=' + arrivingDate + '&arriving_time=' + arrivingTime + '&parking_duration=' + ((parseInt(parkingDuration.hour) * 3600) + (parseInt(parkingDuration.minutes) * 60)))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.available_slots < 1) {
+                            isParkingSlotAvailable = false;
+                        } else {
+                         isParkingSlotAvailable = true;
+                         }
+                    });
+            }"
+        >
             {% csrf_token %}
             <!-- Slot booking details -->
             <div class="p-4 flex flex-col gap-4 items-start">
@@ -45,7 +60,12 @@
                 </div>
                 <p x class="text-red-600" x-show="isBeforeToday">Please select the date and time in the future</p>
                 <p class="mt-8 text-2xl"><span class="text-blue-950 font-bold">Total price<br /></span><span>Rs. <span x-text="costs[vehicleType].hour"></span> x <span x-text="parkingDuration.hour"></span> hr</span> <span x-text="parseInt(parkingDuration.minutes) > 0 ? ` + ${costs[vehicleType].halfHour}` : ''"></span> = <span class="font-bold text-blue-950">Rs. <span x-text="parseInt(parkingDuration.hour) * costs[vehicleType].hour + parseInt(parkingDuration.minutes) * (costs[vehicleType].halfHour / 30)"></span></span></p>
-                <button class="mt-2 bg-green-700 text-white px-3 py-2 rounded-md disabled:bg-gray-600" x-bind:disabled="(parseInt(parkingDuration.hour) == 0 && parseInt(parkingDuration.minutes) == 0) || isBeforeToday || (arrivingDate == null || arrivingTime == null)">Complete Booking</button>
+                <template x-if="!isParkingSlotAvailable">
+                    <p class="text-red-600 font-semibold">Sorry, no slots available for the selected date and time. Please select a different date and time.</p>
+                </template>
+                <template x-if="isParkingSlotAvailable">
+                    <button class="mt-2 bg-green-700 text-white px-3 py-2 rounded-md disabled:bg-gray-600" x-bind:disabled="(parseInt(parkingDuration.hour) == 0 && parseInt(parkingDuration.minutes) == 0) || isBeforeToday || (arrivingDate == null || arrivingTime == null)">Complete Booking</button>
+                </template>
             </div>
             <!-- Parking place details -->
             <div class="border border-gray-200 rounded-md p-2 flex flex-col gap-2">
