@@ -10,6 +10,7 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('login-otp/<str:phone_number>/', login_otp_view, name='login_otp'),
     path('logout', logout_api, name='logout'),
+    path('is-slot-available', is_a_parking_slot_available, name='is_slot_available'),
     path('book/<int:id>/', book_slot_view, name='book_slot'),
     path('book/<int:id>/payment', payment_view, name='book_slot_payment'),
     path('confirmation/<int:id>/', confirmation_view, name='confirmation'),

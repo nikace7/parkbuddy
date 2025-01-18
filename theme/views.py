@@ -17,6 +17,7 @@ import requests
 from django.contrib.auth import logout
 from django.core import serializers
 from datetime import datetime, timedelta
+import pytz
 
 def index(request):
     parking_spaces = ParkingSpace.objects.all()
@@ -31,7 +32,7 @@ def index(request):
             'location_name': space.location_name,
             'available': space.available,
             'phone': space.user.username,
-            'available_slots_count': space.parkingslot_set.filter(is_booked=False).count(),
+            'available_slots_count': space.parkingslot_set.count(),
             'price_per_hr': space.price_per_hr,
             'price_per_half_hr': space.price_per_half_hr,
             'image1': space.image1.url,
@@ -278,7 +279,7 @@ def book_slot_view(request, id):
         duration_hours = request.POST.get('duration_hours')
         duration_minutes = request.POST.get('duration_minutes')
 
-        parking_slot = ParkingSlot.objects.filter(parking_space=parking_space, is_booked=False).first()
+        parking_slot = ParkingSlot.objects.filter(parking_space=parking_space).first()
 
         arriving_at = datetime.strptime(f'{date} {time}', '%Y-%m-%d %H:%M')
         exiting_at = arriving_at + timedelta(hours=int(duration_hours), minutes=int(duration_minutes))
@@ -302,6 +303,30 @@ def book_slot_view(request, id):
             return redirect('homepage')
 
         return render(request, 'book_slot.html', {'parking_space': parking_space})
+    
+
+def is_a_parking_slot_available(request):
+    if request.method == 'GET':
+        parking_space_id = request.GET.get('parking_space_id')
+        arriving_date = request.GET.get('arriving_date')
+        arriving_time = request.GET.get('arriving_time')
+        parking_duration = request.GET.get('parking_duration')  # In number of seconds
+
+        # The arriving_date will be in the format of '21/01/2025', arriving_time of '15:56' and parking_duration in the number of seconds. create a variable representing the python datetime data
+        arriving_date = datetime.strptime(arriving_date, '%Y-%m-%d')
+        arriving_time = datetime.strptime(arriving_time, '%H:%M')
+        parking_duration = timedelta(seconds=int(parking_duration))
+        arriving_time = arriving_date.replace(hour=arriving_time.hour, minute=arriving_time.minute).replace(tzinfo=pytz.UTC)
+
+        parking_space = ParkingSpace.objects.get(id=parking_space_id)
+        total_parking_slots = ParkingSlot.objects.filter(parking_space_id=parking_space_id).count() - parking_space.on_site_occupied_slots_count
+        slots_booked = ParkingBooking.objects.filter(space_id=parking_space_id)
+        for slot in slots_booked:
+            if slot.arriving_at <= arriving_time and slot.exiting_at >= arriving_time:
+                total_parking_slots = total_parking_slots - 1
+
+        return JsonResponse({'available_slots': total_parking_slots})
+
 
 def payment_view(request, id):
     parking_booking = ParkingBooking.objects.get(id=id)
@@ -355,3 +380,55 @@ def confirmation_view(request, id):
         'is_paid': parking_booking.is_paid,
         'price': parking_booking.price,
     })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from .utils import knn_search
+
+def search_nearest_parking_spaces(request):
+    """
+    API endpoint to search for the nearest parking spaces based on user's location.
+
+    """
+    try:
+        user_lat = float(request.GET.get('latitude'))
+        user_lon = float(request.GET.get('longitude'))
+        vehicle_type = request.GET.get('vehicle_type')  # Optional filter
+
+        # Get parking spaces from the database
+        parking_spaces = ParkingSpace.objects.all()
+        if vehicle_type:
+            parking_spaces = parking_spaces.filter(vehicle_type=vehicle_type)
+
+        # Find nearest parking spaces using KNN
+        nearest_spaces = knn_search(parking_spaces, user_lat, user_lon, k=5)
+
+        # Prepare response data
+        data = [
+            {
+                "id": space.id,
+                "name": space.name,
+                "latitude": space.latitude,
+                "longitude": space.longitude,
+                "vehicle_type": space.vehicle_type,
+                "distance": round(distance, 2),
+                "available_slots": space.available_slots,
+            }
+            for space, distance in nearest_spaces
+        ]
+
+        return JsonResponse({"parking_spaces": data}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
