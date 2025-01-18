@@ -1,0 +1,75 @@
+{% extends "user_layout.html" %}
+
+{% block head %}
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" 
+          integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" 
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% endblock head %}
+
+{% block content %}
+{{ block.super }}
+
+<p class="ml-4 mt-4 text-2xl font-semibold">Upcoming Bookings</p>
+
+{% if upcoming_bookings|length == 0 %}
+<p class="ml-4 mt-2 text-gray-600">No upcoming bookings available</p>
+{% endif %}
+
+<div class="px-16 py-8 flex flex-wrap gap-8">
+  {% for booking in upcoming_bookings %}
+    <div class="bg-white p-5 shadow-md rounded-lg mb-5 max-w-[400px] w-full">
+      <div class="flex flex-col">
+        <h2 class="text-xl font-bold">{{ booking.space.name }}</h2>
+        <p>Arriving at: <span class="text-sm">{{ booking.arriving_at }}</span></p>
+        <p>Exiting at: <span class="text-sm">{{ booking.exiting_at }}</span></p>
+      </div>
+      <div class="flex justify-between items-center mt-3">
+        <div>
+          <p class="text-sm text-gray-500">Vehicle Type: {{ booking.space.vehicle_type }}</p>
+          <p class="text-sm text-gray-500">Slots Booked: 1</p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Total Price: Rs {{ booking.price }}</p>
+          <p class="text-sm text-gray-500">Is paid: {% if booking.is_paid %}Yes{% else %}No{% endif %}</p>
+        </div>
+      </div>
+      <div class="w-full flex justify-center items-center">
+        <a class="mx-auto" href="{% url 'confirmation' id=booking.id %}"><button class="mt-4 px-4 py-2 bg-green-500 text-white rounded-md">View ticket</button></a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<p class="ml-4 mt-4 text-2xl font-semibold">Past Bookings</p>
+
+{% if past_bookings|length == 0 %}
+<p class="ml-4 mt-2 text-gray-600">No past bookings available</p>
+{% endif %}
+
+<div class="px-16 py-8 flex flex-wrap gap-8">
+  {% for booking in past_bookings %}
+    <div class="bg-white p-5 shadow-md rounded-lg mb-5 max-w-[400px] w-full">
+      <div class="flex flex-col">
+        <h2 class="text-xl font-bold">{{ booking.space.name }}</h2>
+        <p>Arriving at: <span class="text-sm">{{ booking.arriving_at }}</span></p>
+        <p>Exiting at: <span class="text-sm">{{ booking.exiting_at }}</span></p>
+      </div>
+      <div class="flex justify-between items-center mt-3">
+        <div>
+          <p class="text-sm text-gray-500">Vehicle Type: {{ booking.space.vehicle_type }}</p>
+          <p class="text-sm text-gray-500">Slots Booked: 1</p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Total Price: Rs {{ booking.price }}</p>
+          <p class="text-sm text-gray-500">Is paid: {% if booking.is_paid %}Yes{% else %}No{% endif %}</p>
+        </div>
+      </div>
+      <div class="w-full flex justify-center items-center">
+        <a class="mx-auto" href="{% url 'confirmation' id=booking.id %}"><button class="mt-4 px-4 py-2 bg-green-500 text-white rounded-md">View ticket</button></a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% endblock content %}
