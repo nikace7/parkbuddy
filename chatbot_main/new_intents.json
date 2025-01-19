@@ -103,10 +103,10 @@
         "What is the price for parking?"
       ],
       "responses": [
-        "Parking fees vary by location: Central Park charges $5 for the first hour and $2 for each additional hour.",
-        "Most parking lots charge $10 for a full day, while street parking might be cheaper.",
+        "Parking fees vary by location: Central Park charges NRs.15 for the first half hour and NRs.25 for each additional hour.",
+        "Most parking lots charge NRs.200 for a full day, while street parking might be cheaper.",
         "You can find detailed parking fee information on our website or at the specific parking area.",
-        "The cost of parking typically ranges from $2 to $10, depending on the location."
+        "The cost of parking typically ranges from NRs.25 to NRs.75, depending on the location."
       ],
       "context": [""]
     },
