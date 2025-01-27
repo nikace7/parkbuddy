@@ -15,7 +15,7 @@ from sklearn.metrics import accuracy_score
 nlp = spacy.load('en_core_web_sm')
 
 # Load intents from JSON
-with open('new_intents.json', 'r',encoding='utf-8') as file:
+with open(r'C:\Users\khatr\OneDrive - Prime College\Desktop\Project\ParkBuddy\parkbuddy\chatbot_main\new_intents.json', 'r',encoding='utf-8') as file:
     intents = json.load(file)
 
 # Initialize lists
@@ -40,16 +40,11 @@ if 'intents' in intents:
                 for token in doc:
                     if token.text not in ignoreLetters:
                         wordList.append(token.text)
-                
-
-               
-
+                             
                 # Extend the words list with the text of tokens
                 words.extend(wordList)
                 
-               
-
-                
+                          
                 # Append the document with lemmatized tokens and associated tag
                 documents.append((wordList, intent['tag']))
                 
@@ -151,7 +146,7 @@ for epoch in range(num_epochs):
 print('Training completed')
 
 # Load the best model for inference
-model.load_state_dict(torch.load('best_chatbot.pth'))
+model.load_state_dict(torch.load('best_chatbotNep.pth'))
 torch.save(model.state_dict(), 'final_chatbot.pth')
 
 # Now you can use `model` (best_chatbot.pth or final_chatbot.pth) for inference.
