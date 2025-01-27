@@ -6,127 +6,111 @@
         "Hi",
         "Hello",
         "Hey",
-        "Hi there",
         "Good morning",
         "Good afternoon",
-        "Greetings",
-        "What's up?",
-        "How are you?"
+        "Good evening"
       ],
       "responses": [
-        "Hello! How can I assist you with parking today?",
-        "Hi there! Need help finding a parking spot?",
-        "Hey! How can I help you with your parking needs?",
-        "Hello! What parking assistance do you require?"
-      ],
-      "context": [""]
+        "Hello! How can I assist you with parking ?",
+        "Hi there! How can I help you with parking?",
+        "Hey! What can I do for you regarding parking?"
+      ]
     },
     {
       "tag": "goodbye",
       "patterns": [
-        "bye",
-        "goodbye",
-        "see you later",
-        "take care",
-        "Catch you later",
-        "Farewell",
-        "See you soon"
+        "Bye",
+        "Goodbye",
+        "See you later",
+        "Have a good day"
       ],
       "responses": [
-        "Goodbye! Safe travels and happy parking.",
-        "See you later! Don't forget to park safely.",
-        "Take care! Remember to check for available parking.",
-        "Farewell! Hope to assist you again soon."
-      ],
-      "context": [""]
+        "Goodbye! Have a great day!",
+        "See you later! Safe travels.",
+        "Bye! Let me know if you need help with parking again."
+      ]
     },
     {
       "tag": "thanks",
       "patterns": [
-        "Thanks",
         "Thank you",
-        "That's helpful",
-        "Appreciate it",
+        "Thanks",
         "Thanks a lot",
-        "Thank you very much",
-        "I appreciate your help"
+        "Appreciate it"
       ],
       "responses": [
-        "You're welcome! Happy to assist with parking.",
-        "Glad I could help!",
-        "No problem! Enjoy your parking experience.",
-        "Anytime! Let me know if you need more help."
-      ],
-      "context": [""]
+        "You're welcome!",
+        "Happy to help!",
+        "No problem! Let me know if you need anything else."
+      ]
     },
     {
-      "tag": "parking_spots",
+      "tag": "view_bookings",
       "patterns": [
-        "Where can I find parking?",
-        "Show me available parking spots",
-        "Where are the nearest parking areas?",
-        "Find me a parking spot",
-        "Are there parking spaces available?"
+        "View my bookings",
+        "Check my bookings",
+        "Where can I see my bookings?",
+        "Show me my bookings",
+        "Bookings list"
       ],
       "responses": [
-        "You can find available parking spots at the following locations: Central Park, Downtown Lot, and Main Street Garage.",
-        "Currently, there are parking spaces available near the library and the shopping mall.",
-        "Nearby parking areas include the City Park and the Riverfront Parking."
-        
-      ],
-      "context": [""]
+        "You can view your bookings here: <http://127.0.0.1:8000/bookings/>.",
+        "Check your bookings at this link: <http://127.0.0.1:8000/bookings/>.",
+        "Here’s the link to view your bookings: <http://127.0.0.1:8000/bookings/>."
+      ]
     },
     {
-      "tag": "parking_hours",
+      "tag": "parking_locations",
       "patterns": [
-        "What are the parking hours?",
-        "Is parking allowed overnight?",
-        "When can I park?",
-        "Parking hours for this area?",
-        "Tell me about the parking timings"
+        "Where are the parking locations?",
+        "List of parking spots",
+        "Parking areas in Nepal",
+        "Available parking locations"
       ],
       "responses": [
-        "Parking is available 24/7 in most areas, but be sure to check local signs for specific hours.",
-        "Most parking spots allow overnight parking, but some may have restrictions. Always check the signs.",
-        "Typical parking hours are from 8 AM to 8 PM, but some lots may differ.",
-        "Make sure to verify the timings at your specific parking location."
-      ],
-      "context": [""]
+        "We have parking locations in Kathmandu, Pokhara, and Biratnagar. You can view them on our map.",
+        "Our parking spots are located in major cities like Kathmandu, Pokhara, and Biratnagar.",
+        "Check out our map for available parking locations in Nepal."
+      ]
     },
     {
-      "tag": "parking_fees",
+      "tag": "parking_prices",
       "patterns": [
-        "What are the parking fees?",
+        "What are the parking prices?",
         "How much does parking cost?",
-        "Tell me about the parking charges",
-        "Are there any fees for parking?",
-        "What is the price for parking?"
+        "Parking rates",
+        "Price for parking"
       ],
       "responses": [
-        "Parking fees vary by location: Central Park charges NRs.15 for the first half hour and NRs.25 for each additional hour.",
-        "Most parking lots charge NRs.200 for a full day, while street parking might be cheaper.",
-        "You can find detailed parking fee information on our website or at the specific parking area.",
-        "The cost of parking typically ranges from NRs.25 to NRs.75, depending on the location."
-      ],
-      "context": [""]
+        "Parking prices vary by location. For bikes, it's Rs 25/hour, and for cars, it's Rs 75/hour.",
+        "The cost for parking is Rs 25/hour for bikes and Rs 75/hour for cars.",
+        "Parking rates are Rs 25/hour for bikes and Rs 75/hour for cars."
+      ]
     },
     {
-      "tag": "contact",
+      "tag": "support",
       "patterns": [
-        "How can I contact Parking Buddy?",
-        "Contact details for Parking Buddy",
-        "How to get in touch with support?",
-        "Parking Buddy contact information",
-        "Phone number of Parking Buddy",
-        "Email address of Parking Buddy"
+        "I need help",
+        "Can you help me?",
+        "Support",
+        "I have a problem",
+        "Assistance needed"
       ],
       "responses": [
-        "You can contact Parking Buddy via phone at +977-1-5540555 or email at support@parkingbuddy.com.",
-        "For inquiries, please call us at +977-1-5540555 or email support@parkingbuddy.com.",
-        "Feel free to reach out at +977-1-5540555 or support@parkingbuddy.com for assistance.",
-        "Visit our official website at www.parkingbuddy.com for more contact details."
-      ],
-      "context": [""]
+        "Sure! How can I assist you?",
+        "I’m here to help. What do you need?",
+        "Let me know how I can assist you."
+      ]
+    },
+    {
+      "tag": "fallback",
+      "patterns": [],
+      "responses": [
+        "I’m sorry, I don’t understand. Can you rephrase that?",
+        "I didn’t get that. Could you please clarify?",
+        "I’m not sure what you mean. Can you provide more details?"
+      ]
     }
+    
   ]
 }

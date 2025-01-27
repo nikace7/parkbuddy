@@ -18,11 +18,14 @@ from django.contrib.auth import logout
 from django.core import serializers
 from datetime import datetime, timedelta
 import pytz
+import webbrowser
+from chatbot_main.PABs import predict_class, get_response, intents
 
 def index(request):
     parking_spaces = ParkingSpace.objects.all()
     parking_spaces_ctx = []
     for space in parking_spaces:
+        available_slots_count = ParkingSlot.objects.filter(parking_space=space, is_disabled=False).count() - space.on_site_occupied_slots_count
         parking_spaces_ctx.append({
             'id': space.id,
             'latitude': space.location[0],
@@ -32,7 +35,7 @@ def index(request):
             'location_name': space.location_name,
             'available': space.available,
             'phone': space.user.username,
-            'available_slots_count': space.parkingslot_set.count(),
+            'available_slots_count': available_slots_count,
             'price_per_hr': space.price_per_hr,
             'price_per_half_hr': space.price_per_half_hr,
             'image1': space.image1.url,
@@ -283,7 +286,7 @@ def book_slot_view(request, id):
         duration_hours = request.POST.get('duration_hours')
         duration_minutes = request.POST.get('duration_minutes')
 
-        parking_slot = ParkingSlot.objects.filter(parking_space=parking_space).first()
+        parking_slot = ParkingSlot.objects.filter(parking_space=parking_space, is_disabled=False).first()
 
         arriving_at = datetime.strptime(f'{date} {time}', '%Y-%m-%d %H:%M')
         exiting_at = arriving_at + timedelta(hours=int(duration_hours), minutes=int(duration_minutes))
@@ -324,7 +327,7 @@ def is_a_parking_slot_available(request):
         arriving_time = arriving_date.replace(hour=arriving_time.hour, minute=arriving_time.minute).replace(tzinfo=pytz.UTC)
 
         parking_space = ParkingSpace.objects.get(id=parking_space_id)
-        total_parking_slots = ParkingSlot.objects.filter(parking_space_id=parking_space_id).count() - parking_space.on_site_occupied_slots_count
+        total_parking_slots = ParkingSlot.objects.filter(parking_space_id=parking_space_id, is_disabled=False).count() - parking_space.on_site_occupied_slots_count
         slots_booked = ParkingBooking.objects.filter(space_id=parking_space_id)
         for slot in slots_booked:
             if slot.arriving_at <= arriving_time and slot.exiting_at >= arriving_time:
@@ -402,6 +405,75 @@ def view_bookings(request):
     return render(request, 'view_bookings.html', {'upcoming_bookings': upcoming_bookings, 'past_bookings': past_bookings})
 
 
+def manage_parking_space(request):
+    if request.user.id == None or not request.user.profile.is_parking_manager:
+        return redirect('homepage')
+    
+    parking_spaces = ParkingSpace.objects.filter(user=request.user)
+
+    print(parking_spaces)
+    
+    return render(request, 'manage_parking_space.html', { 'parking_spaces': parking_spaces })
+
+
+def edit_parking_space_view(request, id):
+    if request.user.id == None or not request.user.profile.is_parking_manager:
+        return redirect('homepage')
+    
+    parking_space = ParkingSpace.objects.get(id=id)
+    slots_count = ParkingSlot.objects.filter(parking_space=parking_space, is_disabled=False).count()
+
+    return render(request, 'manage_parking_space_edit.html', { 'parking_space': parking_space, 'slots_count': slots_count })
+
+
+def update_parking_space(request):
+    if request.method == 'POST':
+        id = request.POST.get('id')
+        name = request.POST.get('parking_name')
+        vehicle_type = request.POST.get('vehicle_type')
+        slots_count = request.POST.get('slots_count')
+        on_site_occupied_count = request.POST.get('on_site_occupied_count')
+        price_per_hr = request.POST.get('price_per_hr')
+        price_per_half_hr = request.POST.get('price_per_half_hr')
+        image1 = request.FILES.get('image1')
+        image2 = request.FILES.get('image2')
+        image3 = request.FILES.get('image3')
+        info = request.POST.get('info')
+
+        parking_space = ParkingSpace.objects.get(id=id)
+        parking_space.name = name
+        parking_space.vehicle_type = vehicle_type
+        parking_space.price_per_hr = price_per_hr
+        parking_space.price_per_half_hr = price_per_half_hr
+        if image1 != None:
+            parking_space.image1 = image1
+        if image2 != None:
+            parking_space.image2 = image2
+        if image3 != None:
+            parking_space.image3 = image3
+        parking_space.info = info
+        parking_space.on_site_occupied_slots_count = on_site_occupied_count
+
+        parking_space.save()
+
+        current_slots_count = ParkingSlot.objects.filter(parking_space=parking_space, is_disabled=False).count()
+        if current_slots_count != int(slots_count):
+            if current_slots_count > int(slots_count):
+                slots_to_disable = current_slots_count - int(slots_count)
+                for i in range(slots_to_disable):
+                    slot = ParkingSlot.objects.filter(parking_space=parking_space, is_disabled=False).last()
+                    slot.is_disabled = True
+                    slot.save()
+            else:
+                for i in range(int(slots_count) - current_slots_count):
+                    ParkingSlot.objects.create(
+                        parking_space=parking_space,
+                        slot_number=current_slots_count + i + 1
+                    )
+
+        messages.info(request, 'Parking space updated successfully.')
+        return redirect(request.META.get('HTTP_REFERER'))
+
 
 def khalti_return(request):
     if request.method == 'GET':
@@ -418,6 +490,33 @@ def khalti_return(request):
             return HttpResponse('Payment failed. Please try again.')
 
 
+def contains_link(response):
+    # A simple check for 'http' or 'https' in the response
+    if 'http' in response or 'https' in response:
+        return True
+    return False
+
+def extract_link(response):
+    # Extract the link from the response (assuming the link is enclosed in <>)
+    start_index = response.find('<')
+    end_index = response.find('>')
+    if start_index != -1 and end_index != -1:
+        return response[start_index + 1:end_index]
+    return None
+
+@csrf_exempt
+def chatbot(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user_input = data.get('message')
+        predicted_intent = predict_class(user_input)
+        response = get_response(predicted_intent, intents)
+        if contains_link(response):
+            link = extract_link(response)
+            webbrowser.open(link)
+        return JsonResponse({'response': response})
+      
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
 
