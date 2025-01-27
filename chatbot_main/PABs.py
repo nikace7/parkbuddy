@@ -91,12 +91,26 @@ def contains_link(response):
         return True
     return False
 
+
 def extract_link(response):
     # Extract the link from the response (assuming the link is enclosed in <>)
     start_index = response.find('<')
     end_index = response.find('>')
     if start_index != -1 and end_index != -1:
         return response[start_index + 1:end_index]
+    return None
+
+
+KNOWN_LOCATIONS = ["newroad", "baghbazar", "nayabazar", "kathmandu", "pokhara", "biratnagar"]
+
+def extract_location(user_input):
+    # Convert user input to lowercase for case-insensitive matching
+    user_input = user_input.lower()
+    
+    # Check if any known location is mentioned in the input
+    for location in KNOWN_LOCATIONS:
+        if location in user_input:
+            return location
     return None
 
 def ask_for_confirmation(link):
@@ -108,19 +122,19 @@ def ask_for_confirmation(link):
 # Loading the transformer models for speech synthesis
 print("GO! Bot is running!")
 
-# def chatbot_response(user_input):
-#     predicted_intent = predict_class(user_input)
-#     response = get_response(predicted_intent, intents)
-#     return response
-
-while True:
-    message = input("User: ")
-    predicted_intent = predict_class(message)
+def chatbot_response(user_input):
+    predicted_intent = predict_class(user_input)
     response = get_response(predicted_intent, intents)
-    print(f"Bot:{response}\n")
+    return response
 
-    if contains_link(response):
-        link = extract_link(response)
-        if link and ask_for_confirmation(link):
-            webbrowser.open(link)
-            continue
+
+# while True:
+#     message = input("User: ")
+#     predicted_intent = predict_class(message)
+#     response = get_response(predicted_intent, intents)
+#     print(f"Bot:{response}\n")
+
+#     if contains_link(response):
+#         link = extract_link(response)
+#         webbrowser.open(link)
+#         continue

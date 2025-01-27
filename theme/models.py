@@ -40,6 +40,7 @@ class ParkingSpace(models.Model):
 class ParkingSlot(models.Model):
     parking_space = models.ForeignKey(ParkingSpace, on_delete=models.CASCADE)
     slot_number = models.IntegerField()
+    is_disabled = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.parking_space.name} - #{self.slot_number}"

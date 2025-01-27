@@ -36,19 +36,27 @@
     {% if user.is_authenticated %}
       <!-- Display profile info if the user is logged in -->
       <div class="flex items-center" x-data="{ isDropdownOpen: false, }" @keydown.esc.window="isDropdownOpen = false" @click.away="isDropdownOpen = false">
-        <button @click="isDropdownOpen = !isDropdownOpen" class="hover:bg-slate-100 p-2 transition-colors rounded-full">
+        <button @click="isDropdownOpen = !isDropdownOpen" class="hover:bg-slate-100 p-2 transition-colors rounded-full flex flex-col items-center">
           <img src="{% static 'images/profile-icon.svg' %}" alt="Profile" class="w-8 h-8 rounded-full">
-        </button>
-        <div x-cloak class="flex flex-col relative" x-show="isDropdownOpen == true">
           {% if user.profile.is_parking_manager %}
             <span class="text-sm text-gray-500">Parking Manager</span>
           {% endif %}
-          <div class="absolute mt-4 top-0 right-0 bg-white z-[9999] w-[150px] flex  flex-col rounded-lg shadow-md">
+        </button>
+        <div x-cloak class="flex flex-col relative" x-show="isDropdownOpen == true">
+          <div class="absolute mt-4 top-[20px] right-0 bg-white z-[9999] w-[240px] flex  flex-col rounded-lg shadow-md">
             <p class="text-center px-4 py-1">{{ user.username }}</p>  <!-- Display username -->
-            <a href="{% url 'view_bookings' %}">
-              {% csrf_token %}
-              <button type='submit' class="text-left hover:bg-slate-100 px-4 py-2 w-full">View Bookings</button>
+          {% if user.profile.is_parking_manager %}
+            <a href="{% url 'add_parking_place' %}">
+              <button type='button' class="text-left hover:bg-slate-100 px-4 py-2 w-full">Add a Parking Space</button>
             </a>
+            <a href="{% url 'manage_parking_space' %}">
+              <button type='button' class="text-left hover:bg-slate-100 px-4 py-2 w-full">Manage Your Parking Space</button>
+            </a>
+          {% else %}
+            <a href="{% url 'view_bookings' %}">
+              <button type='button' class="text-left hover:bg-slate-100 px-4 py-2 w-full">View Bookings</button>
+            </a>
+          {% endif %}
             <form method="post" action="{% url 'logout' %}">
               {% csrf_token %}
               <button type='submit' class="text-left hover:bg-slate-100 px-4 py-2 w-full">Logout</button>
