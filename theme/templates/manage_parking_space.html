@@ -19,6 +19,7 @@
     <a href="{% url 'edit_parking_space_view' id=parking_space.id %}" class="flex flex-col flex-wrap items-center gap-1">
       <img src="{{ parking_space.image1.url }}" class="w-20 h-20 object-cover" />
       <p>{{ parking_space.name }}</p>
+      <p>({{ parking_space.vehicle_type }})</p>
     </a>
   {% endfor %}
 </div>
