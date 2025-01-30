@@ -181,12 +181,13 @@ def search_nearest_parking_spaces(request):
 def send_otp(phone_number, otp):
     sparrow_sms_url = "https://api.sparrowsms.com/v2/sms/"
     params = {
-        'token': 'your_api_token',
-        'from': 'ParkBuddy',
+        'token': 'your_api_key',
+        'from': 'TheAlert',
         'to': phone_number,
         'text': f"Your OTP is {otp}.",
     }
     response = requests.get(sparrow_sms_url, params=params)
+    print(response.text)
     print(f"OTP {otp} sent to {phone_number} via Sparrow SMS")
 
 @csrf_exempt
