@@ -8,12 +8,35 @@
         "Hey",
         "Good morning",
         "Good afternoon",
-        "Good evening"
+        "Good evening",
+        "What's up?",
+        "How are you?",
+        "Hey there!"
       ],
       "responses": [
-        "Hello! How can I assist you with parking ?",
-        "Hi there! How can I help you with parking?",
-        "Hey! What can I do for you regarding parking?"
+        "Hello! How can I assist you with parking today?",
+        "Hi there! Need help finding a parking spot?",
+        "Hey! How can I help you with your parking needs?",
+        "Good to see you! How can I assist you?"
+      ]
+    },
+    {
+      "tag": "introduction",
+      "patterns": [
+        "What is your name?",
+        "Who are you?",
+        "Introduce yourself",
+        "Tell me about yourself",
+        "What do you do?",
+        "Are you a bot?",
+        "Are you an AI?",
+        "What can you do?"
+      ],
+      "responses": [
+        "Hi! I am Parker, your Parking Assistant. I can help you find and book parking spots easily!",
+        "Hey there! My name is Parker, and I am here to assist you with parking-related queries.",
+        "I am Parker, the Parking Assistant. I can help you search for parking spots, book slots, and answer general parking questions!",
+        "I am Parker, an AI-powered parking assistant designed to make parking easier for you."
       ]
     },
     {
@@ -22,12 +45,15 @@
         "Bye",
         "Goodbye",
         "See you later",
-        "Have a good day"
+        "Have a good day",
+        "Catch you later",
+        "See you soon"
       ],
       "responses": [
         "Goodbye! Have a great day!",
         "See you later! Safe travels.",
-        "Bye! Let me know if you need help with parking again."
+        "Bye! Let me know if you need help with parking again.",
+        "Take care! Drive safe."
       ]
     },
     {
@@ -36,12 +62,15 @@
         "Thank you",
         "Thanks",
         "Thanks a lot",
-        "Appreciate it"
+        "Appreciate it",
+        "Thanks for the help",
+        "Much appreciated"
       ],
       "responses": [
         "You're welcome!",
         "Happy to help!",
-        "No problem! Let me know if you need anything else."
+        "No problem! Let me know if you need anything else.",
+        "Anytime! Glad I could help."
       ]
     },
     {
@@ -51,12 +80,14 @@
         "Check my bookings",
         "Where can I see my bookings?",
         "Show me my bookings",
-        "Bookings list"
+        "Bookings list",
+        "My reserved parking spots"
       ],
       "responses": [
         "You can view your bookings here: <http://127.0.0.1:8000/bookings/>.",
         "Check your bookings at this link: <http://127.0.0.1:8000/bookings/>.",
-        "Here’s the link to view your bookings: <http://127.0.0.1:8000/bookings/>."
+        "Here is the link to view your bookings: <http://127.0.0.1:8000/bookings/>.",
+        "Click here to see your booked parking spots: <http://127.0.0.1:8000/bookings/>."
       ]
     },
     {
@@ -65,12 +96,15 @@
         "Where are the parking locations?",
         "List of parking spots",
         "Parking areas in Nepal",
-        "Available parking locations"
+        "Available parking locations",
+        "Where can I park my car?",
+        "Where can I park near me?"
       ],
       "responses": [
         "We have parking locations in Kathmandu, Pokhara, and Biratnagar. You can view them on our map.",
         "Our parking spots are located in major cities like Kathmandu, Pokhara, and Biratnagar.",
-        "Check out our map for available parking locations in Nepal."
+        "Check out our map for available parking locations in Nepal.",
+        "You can find available parking spaces in our system by entering your location."
       ]
     },
     {
@@ -79,12 +113,72 @@
         "What are the parking prices?",
         "How much does parking cost?",
         "Parking rates",
-        "Price for parking"
+        "Price for parking",
+        "How much to park my car?",
+        "What are the charges for parking?"
       ],
       "responses": [
         "Parking prices vary by location. For bikes, it's Rs 25/hour, and for cars, it's Rs 75/hour.",
-        "The cost for parking is Rs 25/hour for bikes and Rs 75/hour for cars.",
-        "Parking rates are Rs 25/hour for bikes and Rs 75/hour for cars."
+        "The cost for parking is Rs 25/hour for bikes and Rs 75/hour for cars in general.",
+        "In General, Parking rates are Rs 25/hour for bikes and Rs 75/hour for cars.",
+        "Prices depend on location. Typically, Rs 25/hour for bikes and Rs 75/hour for cars."
+      ]
+    },
+    {
+      "tag": "parking_suggestions_kathmandu",
+      "patterns": [
+        "Suggest parking spots in Kathmandu",
+        "Where can I park in Kathmandu?",
+        "Best parking areas in Kathmandu",
+        "Parking locations in Kathmandu"
+      ],
+      "responses": [
+        "Here are some parking locations in Kathmandu:\n- Newroad Parking Area\n- Bhrikutimandap Parking\n- Thamel Multi-level Parking\n- Durbar Marg Parking\n- Kathmandu Mall Parking\n- Tripureshwor Parking\n- Jamal Parking Area",
+        "You can find parking at:\n- Newroad Parking\n- Bhrikutimandap Parking\n- Kathmandu Mall\n- Durbar Marg\n- Thamel Multi-level Parking",
+        "Available parking locations in Kathmandu:\n1. Newroad Parking\n2. Bhrikutimandap Parking\n3. Thamel Multi-level Parking\n4. Kathmandu Mall Parking"
+      ]
+    },
+    {
+      "tag": "booking_process",
+      "patterns": [
+        "How do I book a parking spot?",
+        "How can I book parking?",
+        "Can I reserve a parking slot?",
+        "Steps to book parking"
+      ],
+      "responses": [
+        "To book a parking spot:\n1. Visit Home Page .\n2. Search for a location.\n3. Select an available parking spot.\n4. Confirm booking and payment (if required).",
+        "You can book a parking spot by selecting your location and choosing an available slot.",
+        "To reserve a parking slot, go to our website, search for a spot, and confirm your booking."
+      ]
+    },
+    {
+      "tag": "parking_availability",
+      "patterns": [
+        "Is parking available?",
+        "Are there any parking spots?",
+        "Can I find parking?",
+        "Parking availability",
+        "Are there free parking spots?"
+      ],
+      "responses": [
+        "Yes, parking spots are available. You can check the map for open slots.",
+        "Parking is available. You can view the map for available spots.",
+        "There are parking spots open. Check the map for availability."
+      ]
+    },
+    {
+      "tag": "payment_methods",
+      "patterns": [
+        "What payment methods are available?",
+        "How can I pay for parking?",
+        "Do you accept online payments?",
+        "Is Khalti supported?"
+      ],
+      "responses": [
+        "We accept payments via Khalti for online bookings.",
+        "You can pay using Khalti for a smooth parking experience.",
+        "Currently, we support Khalti payments for booking your parking slot."
       ]
     },
     {
@@ -94,23 +188,52 @@
         "Can you help me?",
         "Support",
         "I have a problem",
-        "Assistance needed"
+        "Assistance needed",
+        "Help me with my booking"
       ],
       "responses": [
         "Sure! How can I assist you?",
-        "I’m here to help. What do you need?",
-        "Let me know how I can assist you."
+        "I'm here to help. What do you need?",
+        "Let me know how I can assist you.",
+        "If you're facing an issue, feel free to ask!"
+      ]
+    },
+    {
+      "tag": "parking_safety",
+      "patterns": [
+        "Is parking safe?",
+        "How secure is my vehicle?",
+        "Do you have CCTV in parking areas?",
+        "Parking security measures?"
+      ],
+      "responses": [
+        "Our parking areas are monitored by CCTV and security personnel for safety.",
+        "We ensure vehicle safety with surveillance cameras and designated security staff.",
+        "Your vehicle is secure with 24/7 monitoring and restricted access."
+      ]
+    },
+    {
+      "tag": "report_problem",
+      "patterns": [
+        "How do I report a parking issue?",
+        "There's a problem with my parking slot",
+        "I want to report a problem",
+        "Who do I contact for parking complaints?"
+      ],
+      "responses": [
+        "You can report any issues from your account under 'Help & Support'. Our team will assist you as soon as possible.",
+        "For parking complaints, visit the help center or contact support at <support@parkbuddy.com>.",
+        "If you face any issues, please report them through your account or speak to on-site staff."
       ]
     },
     {
       "tag": "fallback",
       "patterns": [],
       "responses": [
-        "I’m sorry, I don’t understand. Can you rephrase that?",
-        "I didn’t get that. Could you please clarify?",
-        "I’m not sure what you mean. Can you provide more details?"
+        "I am sorry, I do not understand. Can you rephrase that?",
+        "I did not get that. Could you please clarify?",
+        "I am not sure what you mean. Can you provide more details?"
       ]
     }
-    
   ]
 }
