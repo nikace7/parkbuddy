@@ -22,7 +22,7 @@
                 </div>
             </div>
             <p>{{ arriving_time }} - {{ exiting_time }}</p>
-            <p>Vehicle type: <span class="font-semibold">Bike</span></p>
+            <p>Vehicle type: <span class="font-semibold">{{ vehicle_type }}</span></p>
             <p>Location name: <span>{{ parking_name }}, {{ location_name }}</span></p>
             <p class="mt-4">Has paid: {% if is_paid %}Yes {%else%} No{% endif %}</p>
             {%if not is_paid %}<p> <span class="font-semibold text-2xl">Rs {{ price }}</span></p>{%endif %}

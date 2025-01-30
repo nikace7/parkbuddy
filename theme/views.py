@@ -182,7 +182,7 @@ def send_otp(phone_number, otp):
     sparrow_sms_url = "https://api.sparrowsms.com/v2/sms/"
     params = {
         'token': 'your_api_key',
-        'from': 'TheAlert',
+        'from': 'PARKBUDDY',
         'to': phone_number,
         'text': f"Your OTP is {otp}.",
     }
