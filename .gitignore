@@ -92,5 +92,5 @@ migrations/
 
 *.pth
 *.pkl
-*.txt
+
 *.json
