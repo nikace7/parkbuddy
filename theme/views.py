@@ -1,3 +1,4 @@
+import os
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
@@ -359,7 +360,7 @@ def payment_view(request, id):
             }
         )
         headers = {
-            "Authorization": "key REMOVED",
+            "Authorization": f"key {os.environ['KHALTI_SECRET_KEY']}",
             "Content-Type": "application/json",
         }
 

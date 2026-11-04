@@ -133,7 +133,7 @@ CREATE DATABASE "ParkBuddy";
 CREATE EXTENSION postgis;
 ```
 
-Update your database credentials and GDAL paths in `parkbuddy/settings.py` (or through environment variables).
+Set the `DJANGO_SECRET_KEY`, `DB_PASSWORD` and `KHALTI_SECRET_KEY` environment variables, and update your GDAL paths in `parkbuddy/settings.py`.
 
 #### 3. Run Migrations & Seed Data
 ```bash
