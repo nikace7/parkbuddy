@@ -128,6 +128,7 @@ TAILWIND_APP_NAME = 'theme'
 
 KHALTI_SECRET_KEY = os.environ['KHALTI_SECRET_KEY']
 SPARROW_SMS_TOKEN = os.environ.get('SPARROW_SMS_TOKEN', '')
+GEOCODE_API_KEY = os.environ.get('GEOCODE_API_KEY', '')
 
 INTERNAL_IPS = [
     "127.0.0.1",

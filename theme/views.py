@@ -94,7 +94,7 @@ def save_parking_space(request):
         location_name = ''
 
         res = requests.get(
-                f"https://geocode.maps.co/reverse?api_key=REMOVED&lon={longitude}&lat={latitude}"
+                f"https://geocode.maps.co/reverse?api_key={settings.GEOCODE_API_KEY}&lon={longitude}&lat={latitude}"
             )
         response = json.loads(res.text)
 
