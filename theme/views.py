@@ -39,9 +39,9 @@ def index(request):
             'available_slots_count': available_slots_count,
             'price_per_hr': space.price_per_hr,
             'price_per_half_hr': space.price_per_half_hr,
-            'image1': space.image1.url,
-            'image2': space.image2.url,
-            'image3': space.image3.url,
+            'image1': space.image1.url if space.image1 else '',
+            'image2': space.image2.url if space.image2 else '',
+            'image3': space.image3.url if space.image3 else '',
         })
 
     return render(request, 'index.html', {'parking_spaces': json.dumps(parking_spaces_ctx)})

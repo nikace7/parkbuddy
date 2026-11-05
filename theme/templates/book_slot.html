@@ -72,15 +72,21 @@
                 <div id="parking-images-carousel" class="splide w-full h-auto">
                     <div class="splide__track">
                         <ul class="splide__list">
+                            {% if parking_space.image1 %}
                             <li class="splide__slide">
                                 <img src="{{ parking_space.image1.url }}" class="w-full h-auto" />
                             </li>
+                            {% endif %}
+                            {% if parking_space.image2 %}
                             <li class="splide__slide">
                                 <img src="{{ parking_space.image2.url }}" class="w-full h-auto" />
                             </li>
+                            {% endif %}
+                            {% if parking_space.image3 %}
                             <li class="splide__slide">
                                 <img src="{{ parking_space.image3.url }}" class="w-full h-auto" />
                             </li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
