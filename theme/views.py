@@ -1,4 +1,4 @@
-import os
+from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
@@ -182,7 +182,7 @@ def search_nearest_parking_spaces(request):
 def send_otp(phone_number, otp):
     sparrow_sms_url = "https://api.sparrowsms.com/v2/sms/"
     params = {
-        'token': 'your_api_key',
+        'token': settings.SPARROW_SMS_TOKEN,
         'from': 'PARKBUDDY',
         'to': phone_number,
         'text': f"Your OTP is {otp}.",
@@ -360,7 +360,7 @@ def payment_view(request, id):
             }
         )
         headers = {
-            "Authorization": f"key {os.environ['KHALTI_SECRET_KEY']}",
+            "Authorization": f"key {settings.KHALTI_SECRET_KEY}",
             "Content-Type": "application/json",
         }
 
