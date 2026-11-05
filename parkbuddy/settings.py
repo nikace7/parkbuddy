@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import shutil
 
 from dotenv import load_dotenv
 
@@ -20,7 +21,7 @@ DEBUG = os.environ.get('DJANGO_DEBUG') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
-NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
+NPM_BIN_PATH = shutil.which('npm') or 'npm'
 
 # Application definition
 
@@ -78,8 +79,8 @@ DATABASES = {
         'NAME': 'ParkBuddy',
         'USER': 'postgres',
         'PASSWORD': os.environ['DB_PASSWORD'],
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -137,6 +138,6 @@ INTERNAL_IPS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# GDAL and GEOS Library Paths for GeoDjango
-GDAL_LIBRARY_PATH = r"C:\OSGeo4W\bin\gdal309.dll"
-GEOS_LIBRARY_PATH = r"C:\OSGeo4W\bin\geos_c.dll"
+# GeoDjango finds GDAL and GEOS on PATH. Set these only if it cannot.
+GDAL_LIBRARY_PATH = os.environ.get('GDAL_LIBRARY_PATH')
+GEOS_LIBRARY_PATH = os.environ.get('GEOS_LIBRARY_PATH')
