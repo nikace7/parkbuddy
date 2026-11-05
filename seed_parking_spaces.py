@@ -1,18 +1,22 @@
-from parkbuddy.theme.models import ParkingSpace
+import os
+
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'parkbuddy.settings')
+django.setup()
+
+from theme.models import ParkingSpace
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 # Create a parking manager
 
-User.objects.create(
-    username='9876543210',
-
-)
+User.objects.get_or_create(username='9876543210')
 
 # Create 20 parking spaces for the parking manager
 
-ParkingSpace.objects.create(
+ParkingSpace.objects.get_or_create(
     user=User.objects.get(username='9876543210'),
     name='Parking Space 1',
     location='SRID=4326;POINT(77.5946 12.9716)',
