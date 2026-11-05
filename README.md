@@ -133,7 +133,7 @@ CREATE DATABASE "ParkBuddy";
 CREATE EXTENSION postgis;
 ```
 
-Update your database credentials and GDAL paths in `parkbuddy/settings.py` (or through environment variables).
+Copy `.env.example` to `.env` and fill in the values, then update your GDAL paths in `parkbuddy/settings.py`. `.env` is git-ignored, so never commit it. Debug mode is off by default: set `DJANGO_DEBUG=True` in `.env` on your own machine, because static files and uploads are only served in debug mode.
 
 #### 3. Run Migrations & Seed Data
 ```bash
