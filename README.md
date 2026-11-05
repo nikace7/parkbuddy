@@ -106,9 +106,9 @@ parkbuddy/
 ### Getting Started
 
 #### Prerequisites
-- **Python 3.11+**
-- **PostgreSQL 15+** with the **PostGIS** extension enabled
-- **GDAL and GEOS** geospatial C libraries installed on your operating system (e.g., via OSGeo4W on Windows or `libgdal-dev` on Linux)
+- **Python 3.11 or 3.12** (spaCy 3.7 has no wheels for 3.13)
+- **PostgreSQL 15+** with the **PostGIS** extension, or **Docker** to run both in a container
+- **GDAL and GEOS** geospatial C libraries installed on your operating system (e.g., via OSGeo4W on Windows or `libgdal-dev` on Linux). On Windows, add `C:\OSGeo4W\bin` to `PATH`, and if your GDAL is newer than Django looks for (3.9 or later with Django 5.1), set `GDAL_LIBRARY_PATH` as shown in `.env.example`
 - **Node.js 18+** (for Tailwind CSS build tooling)
 
 #### 1. Clone & Set Up Virtual Environment
@@ -125,15 +125,22 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+This includes PyTorch and the spaCy English model for the chatbot, so the first install is a large download.
+
 #### 2. Configure Database & PostGIS
-Create a PostgreSQL database and enable the PostGIS extension:
+Start PostGIS in a container:
+```bash
+docker run -d --name parkbuddy-db -e POSTGRES_PASSWORD=change-me -e POSTGRES_DB=ParkBuddy -p 5432:5432 postgis/postgis:15-3.4
+```
+
+Or create a database on your own PostgreSQL server and enable the extension:
 ```sql
 CREATE DATABASE "ParkBuddy";
 \c "ParkBuddy";
 CREATE EXTENSION postgis;
 ```
 
-Copy `.env.example` to `.env` and fill in the values, then update your GDAL paths in `parkbuddy/settings.py`. `.env` is git-ignored, so never commit it. Debug mode is off by default: set `DJANGO_DEBUG=True` in `.env` on your own machine, because static files and uploads are only served in debug mode.
+Copy `.env.example` to `.env` and fill in the values. `DB_PASSWORD` must match your database, and `DB_HOST` and `DB_PORT` change where it is reached. The placeholder values are enough to run the app locally, because the Khalti and Sparrow keys are only used when paying or sending a login OTP. `.env` is git-ignored, so never commit it. Debug mode is off by default: set `DJANGO_DEBUG=True` in `.env` on your own machine, because static files and uploads are only served in debug mode.
 
 #### 3. Run Migrations & Seed Data
 ```bash
@@ -143,6 +150,9 @@ python seed_parking_spaces.py
 
 #### 4. Build Styles & Launch Development Server
 ```bash
+# Once, to install the Tailwind tooling:
+python manage.py tailwind install
+
 # In a separate terminal, watch Tailwind styles:
 python manage.py tailwind start
 
@@ -151,6 +161,11 @@ python manage.py runserver
 ```
 
 Navigate to `http://127.0.0.1:8000` in your browser.
+
+#### 5. Run the Tests
+```bash
+python manage.py test
+```
 
 ---
 
