@@ -22,10 +22,9 @@ with open(intents_path, 'r') as file:
 # Load spaCy model
 nlp = spacy.load('en_core_web_sm')
 
-# Load intents and preprocessing data   
-intents = json.loads(open(r'C:\Users\khatr\OneDrive - Prime College\Desktop\Project\ParkBuddy\parkbuddy\chatbot_main\new_intents.json').read())
-words = pickle.load(open(r'C:\Users\khatr\OneDrive - Prime College\Desktop\Project\ParkBuddy\parkbuddy\chatbot_main\words.pkl', 'rb'))
-classes = pickle.load(open(r'C:\Users\khatr\OneDrive - Prime College\Desktop\Project\ParkBuddy\parkbuddy\chatbot_main\classes.pkl', 'rb'))
+# Load preprocessing data
+words = pickle.load(open(os.path.join(base_dir, 'words.pkl'), 'rb'))
+classes = pickle.load(open(os.path.join(base_dir, 'classes.pkl'), 'rb'))
 
 # Define and load the PyTorch model
 class ChatbotModel(nn.Module):
@@ -45,8 +44,7 @@ class ChatbotModel(nn.Module):
         out = self.softmax(out)
         return out
 
-# Modify path to your trained PyTorch model file
-model_path = r'C:\Users\khatr\OneDrive - Prime College\Desktop\Project\ParkBuddy\parkbuddy\chatbot_main\best_chatbotNep.pth'
+model_path = os.path.join(base_dir, 'best_chatbotNep.pth')
 model = ChatbotModel(input_size=len(words), hidden_size=512, output_size=len(classes))
 model.load_state_dict(torch.load(model_path))
 model.eval()
