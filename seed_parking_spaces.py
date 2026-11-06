@@ -19,8 +19,8 @@ User.objects.get_or_create(username='9876543210')
 ParkingSpace.objects.get_or_create(
     user=User.objects.get(username='9876543210'),
     name='Parking Space 1',
-    # Same (latitude, longitude) order as save_parking_space, and where the map opens.
-    location='SRID=4326;POINT(27.7172 85.3240)',
+    # (longitude, latitude), and where the map opens.
+    location='SRID=4326;POINT(85.3240 27.7172)',
     vehicle_type='Car',
     location_name='New Road',
     image1 = '',

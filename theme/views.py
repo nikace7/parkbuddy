@@ -29,8 +29,8 @@ def index(request):
         available_slots_count = ParkingSlot.objects.filter(parking_space=space, is_disabled=False).count() - space.on_site_occupied_slots_count
         parking_spaces_ctx.append({
             'id': space.id,
-            'latitude': space.location[0],
-            'longitude': space.location[1],
+            'latitude': space.location.y,
+            'longitude': space.location.x,
             'name': space.name,
             'vehicle_type': space.vehicle_type,
             'location_name': space.location_name,
@@ -107,7 +107,7 @@ def save_parking_space(request):
 
         parking_space = ParkingSpace.objects.create(
             name=name,
-            location=Point(float(latitude), float(longitude)),
+            location=Point(float(longitude), float(latitude)),
             vehicle_type=vehicle_type,
             location_name=location_name,
             user=request.user,
@@ -519,45 +519,3 @@ def chatbot(request):
         return JsonResponse({'response': response})
       
     return JsonResponse({'error': 'Invalid request method'}, status=400)
-
-
-
-
-from .utils import knn_search
-
-def search_nearest_parking_spaces(request):
-    """
-    API endpoint to search for the nearest parking spaces based on user's location.
-
-    """
-    try:
-        user_lat = float(request.GET.get('latitude'))
-        user_lon = float(request.GET.get('longitude'))
-        vehicle_type = request.GET.get('vehicle_type')  # Optional filter
-
-        # Get parking spaces from the database
-        parking_spaces = ParkingSpace.objects.all()
-        if vehicle_type:
-            parking_spaces = parking_spaces.filter(vehicle_type=vehicle_type)
-
-        # Find nearest parking spaces using KNN
-        nearest_spaces = knn_search(parking_spaces, user_lat, user_lon, k=5)
-
-        # Prepare response data
-        data = [
-            {
-                "id": space.id,
-                "name": space.name,
-                "latitude": space.latitude,
-                "longitude": space.longitude,
-                "vehicle_type": space.vehicle_type,
-                "distance": round(distance, 2),
-                "available_slots": space.available_slots,
-            }
-            for space, distance in nearest_spaces
-        ]
-
-        return JsonResponse({"parking_spaces": data}, status=200)
-
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
