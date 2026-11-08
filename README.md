@@ -185,3 +185,5 @@ Software Engineer — Kathmandu, Nepal
 - GitHub: [@nikace7](https://github.com/nikace7)  
 - LinkedIn: [Nikesh Khatri](https://www.linkedin.com/in/nikesh-khatri-2b04582a9/)  
 - Email: [khatrinikace@gmail.com](mailto:khatrinikace@gmail.com)
+
+Built with [Bijay Karki](https://github.com/bkarki010), who built the sign-in screen, the map popup, and the slot details, payment and confirmation pages. I built the rest: the models, PostGIS search, booking, Khalti payments and the Nepali chatbot.
