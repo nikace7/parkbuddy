@@ -1,0 +1,2 @@
+# Django templates are counted as HTML, which hides that this is a Python project.
+theme/templates/*.html linguist-detectable=false
