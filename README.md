@@ -177,6 +177,12 @@ python manage.py test
 
 ---
 
+### License
+
+No license has been chosen yet, so all rights are reserved by the authors.
+
+---
+
 ### Author
 
 **Nikesh Khatri**  
